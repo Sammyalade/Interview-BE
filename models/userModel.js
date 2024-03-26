@@ -2,10 +2,16 @@ const mongoose = require("mongoose")
 const bcrypt = require("bcryptjs")
 
 const userSchema = mongoose.Schema({
-
-    name: {
+    
+    
+    
+    firstname: {
         type: String,
-        required: [true, "Please add a name"]
+        required: [true, "Please add a First Name"]
+    },
+    lastname: {
+        type: String,
+        required: [true, "Please add a Last Name"]
     },
     email: {
         type: String,
@@ -17,6 +23,30 @@ const userSchema = mongoose.Schema({
             "Please enter a valid Email"
         ]
     },
+    gender: {
+        type: String,
+        required: [true, "Please add a gender"]
+    },
+    dateOfBirth: {
+        type: String,
+        required: [true, "Please add Date of Birth"]
+    },
+    stateOfOrigin: {
+        type: String,
+        required: [true, "Please add State of Origin"]
+    },
+    tribe: {
+        type: String,
+        required: [true, "Please add a Tribe"]
+    },
+    ethnicity: {
+        type: String,
+        required: [true, "Please add Ethnicity"]
+    },
+    consent: {
+        type: String,
+        required: [true, "Please add a consent confirmation"]
+    },
     password:{
         type: String,
         required: [true, "Please add your Password"],
@@ -25,24 +55,13 @@ const userSchema = mongoose.Schema({
     },
     language:{
         type: String,
-        required: [true, "Please add your prefered Language"],
-        minLength: [3, "Language must be up to 3 characters"],
-       //  maxLength: [23, "Password must not be more than 23 characters"],
+        default:"Not Specified"
     },
-    // photo:{
-    //     type: String,
-    //     required: [true, "Please Enter a photo"],
-    //     default: "https://ibb.co/mCCwcP4"
-    // },
-    // phone:{
-    //     type: String,
-    //     default: "+234"
-    // },
-    // bio:{
-    //     type: String,
-    //     maxLength: [250, "Bio must not be more than 250 characters"],
-    //     default: "bio"
-    // },
+    verified:{
+        type: Boolean,
+        default: false,
+    },
+    
 }, {timestamps: true,});
 
  //encrypt password before saving to DB

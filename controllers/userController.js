@@ -5,158 +5,286 @@ const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
+const { respondsSender } = require('../middleWare/respondsHandler');
+const { ResponseCode } = require('../utils/responseCode');
+
 
 
 
 const generateToken = (id) => {
-return jwt.sign({id}, process.env.JWT_SECRET, {expiresIn:"1d"})
-};
+    const timestamp = Date.now();
+    const expirationTime = 6 * 60 * 1000; // 6 minutes in milliseconds
+    const expirationDate = timestamp + expirationTime;
+    const token = jwt.sign({ id, exp: expirationDate }, process.env.JWT_SECRET);
+    return token;
+  };
 
-// register user Function
-const registerUser = asynchandler( async (req, res) => {
-    const{name, email, password} = req.body
-       //Validation Check
-       if(!name || !email || !password )  {
-        res.status(400)
-        throw new Error("Please fill in all required fields")
-       } 
-        if (password.length < 6) {
-            res.status(400)
-            throw new Error ("password must be up to 6 characters ")
+//kindly ignore but don't delete
+function generateRandomString(length) {
+    let result = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * characters.length);
+      result += characters.charAt(randomIndex);
+    }
+  
+    return result;
+}
+
+
+// Register user
+const registerUser = asynchandler(async (req, res) => {
+    try {
+      const {
+        firstname,
+        lastname,
+        email,
+        gender,
+        dateOfBirth,
+        stateOfOrigin,
+        tribe,
+        ethnicity,
+        consent,
+        password,
+      } = req.body;
+  
+      // Validation Check
+      if (!firstname || !lastname || !email || !gender || !dateOfBirth || !stateOfOrigin || !tribe || !ethnicity || !consent || !password) {
+       
+        respondsSender(null, "Please fill in all required fields", ResponseCode.badRequest, res);  
+
+      }
+      if (password.length < 6) {
+            respondsSender(null, "Password must be at least 6 characters", ResponseCode.badRequest, res); 
+      }
+      const lowerEmail = email.toLowerCase();
+      console.log(lowerEmail);
+      // Validation check if user email already exists  
+      const userExists = await User.findOne({ email:lowerEmail });
+      if (userExists) {
+        console.log('User already exists');
+        respondsSender(null, "User already registered", ResponseCode.dataDuplication, res); 
+       
+      }
+  
+      // Add user info to the database
+      const user = await User.create({
+        firstname,
+        lastname,
+        email:lowerEmail,
+        gender,
+        dateOfBirth,
+        stateOfOrigin,
+        tribe,
+        ethnicity,
+        consent,
+        password,
+        verified: false,
+      });
+  
+      // User was successfully created, perform your desired action here
+      const randomText = generateRandomString(12);
+
+      // Construct Reset URL
+      const verifyUrl = `${process.env.FRONTEND_URL}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
+  
+      // Reset Email
+      const message = `
+        <h2> Hello ${user.firstname},</h2>
+        <p> Please use the URL below to verify your registration </p>
+        <a href=${verifyUrl} clicktracking="off">${verifyUrl}</a>
+        <p> Regards ... </p>
+        <p>Awarri LLM team. </p>`;
+  
+      const subject = "Verify Registration Request";
+      const send_to = user.email;
+      const sent_from = process.env.EMAIL_USER;
+  
+      // Send the verification email
+      await sendEmail(subject, message, send_to, sent_from);
+      console.log(verifyUrl);
+      const response={
+        message:"Verification Email Sent",
+        url:verifyUrl
         }
 
-        // Validation check if user email already exists
+    //res.status(200).json(response);
+    respondsSender(response, "successful", ResponseCode.successful, res); 
+    } catch (error) {
+      // Handle any errors that occurred during user registration
+      console.error("Error registering user:", error);
+       respondsSender(data, "Registration Failed"+(error.message), ResponseCode.internalServerError, res); 
 
-       const userExists = await User.findOne({email})
-       if(userExists) {
-        res.status(400)
-        throw new Error ("Email has already been registered")
-       }
-        
-       // create new user 
-
-       const user = await User.create({name, email, password,
-    })
-
-
-        //Generate Token
-         const token = generateToken(user._id)
-    
-         //Send HTTP-only cookie
-
-        res.cookie("token", token, {
-            path:"/",
-            httpOnly:true,
-            expires: new Date(Date.now() + 1000 * 86400), //1day
-            sameSite: "none",
-            secure: true
-        }) 
-    if (user) {
-        const{_id,name,email, photo,phone, bio} = user
-        res.status(201).json({
-            _id, name, email, photo, phone, bio, token,
-        });
-
-
-    }else{
-        res.status(400) 
-        throw new Error("Invalid user Data") 
     }
+});
+  
+
+// Verify User Registration
+const verifyUser = asynchandler (async (req,res) => {
+    const { id } = req.params;
+    //check if User exist 
+    const user = await User.findOne({_id:id})
+    if(!user){
+        respondsSender(null, "User not Found Please Sign-up", ResponseCode.noData, res);         
     }
+    // check if user already verified
+    if (user.verified==true) {      
+        respondsSender(null, "User Already Verified,  please Login", ResponseCode.dataDuplication, res);    
+    }
+    else 
+    {
+        // set Verification to true
+        user.verified = true;
+        await user.save();
+        respondsSender(null, "User Successfully Verified", ResponseCode.successful, res); 
+    }
+});
 
-);
 
-    //Login user
-
-    const loginUser = asynchandler(async(req,res) => {
+//Login user
+const loginUser = asynchandler(async(req,res) => {
     const { email, password} = req.body 
 
+        
     //validate Request
     if (!email || !password) {
-        res.status(400);
-        throw new Error ("Please Add Email and password")
+        respondsSender(null, "Please Add Email and password", ResponseCode.badRequest, res); 
     }
-
+    const lowerEmail = email.toLowerCase();
     //Check if user Exists
-    const user = await User.findOne({email}) 
+    const user = await User.findOne({email:lowerEmail}) 
     if(!user) {
-        res.status(400)
-        throw new Error ("User not Found Please Sign-up")
+        respondsSender(null, "User not Found Please Sign-up", ResponseCode.noData, res); 
        }
 
        // User exists, check if password is correct
-
        const passwordIsCorrect = await bcrypt.compare(password, user.password)
-
-       //Generate Login Token
-       const token = generateToken(user._id)
     
-       //Send login HTTP-only cookie
+       if (user && passwordIsCorrect){  
+        if(user.verified==true){         
+               
+                //Generate Login Token
+                const token = generateToken(user._id)
+               
+                //delete all user previous token
+                const deletionResult = await Token.deleteMany({ userId: user._id });
+                
+                //save token to token db
+                const savedToken = await Token.create({
+                    userId:user._id,
+                    token,
+                  });
+                
 
-      res.cookie("token", token, {
-          path:"/",
-          httpOnly:true,
-          expires: new Date(Date.now() + 1000 * 86400), //1day
-          sameSite: "none",
-          secure: true
-      }) 
-    
-       if (user && passwordIsCorrect){
-            const{_id,name,email, photo,phone, bio} = user
-            res.status(200).json({
-                _id, name, email, photo, phone, bio, token,
-            });
+              const data= {
+                userInfo:{
+                    _id:user._id,
+                    firstname:user.firstname,
+                    lastname:user.lastname,
+                    email:user.email,
+                    gender:user.gender,
+                    dateOfBirth:user.dateOfBirth,
+                    stateOfOrigin:user.stateOfOrigin,
+                    tribe:user.tribe,
+                    ethnicity:user.ethnicity,
+                    },
+                 token:token
+              }
+              respondsSender(data, "Login successful", ResponseCode.successful, res); 
+
+            }
+            else{
+                //password and email is right but user is not verified resend verification mail
+
+                respondsSender(null, "Please verify your email", ResponseCode.noData, res); 
+
+            }
         } else{
-            res.status(400)
-            throw new Error("Invalid email or Password");
+           
+            respondsSender(null, "Invalid email or Password", ResponseCode.noData, res); 
         } 
-    });
+});
 
-    //Logout User 
-    const logout = asynchandler (async (req, res) =>{
-        res.cookie("token", "", {
-            path:"/",
-            httpOnly:true,
-            expires: new Date(0),
-            sameSite: "none",
-            secure: true
-        }); 
-        return res.status(200).json({message: "Successfully Logged out"})
-    })
 
-    //Get User Profile data
+//Logout User 
+const logout = asynchandler (async (req, res) =>{
+        //delete all token related to a user from db
+           
+            if (!req.body._id) {
+                respondsSender(null, "No user id Passed", ResponseCode.badRequest, res); 
+            }
+        try {
+            // Assuming the field name in your Token model is 'userId'
+            const result = await Token.deleteMany({ userId: req.body._id });
+    
+            if (result.deletedCount > 0) {
+                //token deleted from db
+                //clear token saved in server cookies
+                res.cookie("token", "", { 
+                    path:"/",
+                    httpOnly:true,
+                    expires: new Date(0),
+                    sameSite: "none",
+                    secure: true
+                }); 
+                respondsSender(null, "Successfully Logged out", ResponseCode.successful, res); 
+            } else {
+                //clear token saved in server cookies
+                res.cookie("token", "", { 
+                    path:"/",
+                    httpOnly:true,
+                    expires: new Date(0),
+                    sameSite: "none",
+                    secure: true
+                }); 
+                respondsSender(null, "User was not logged in, all token linked to user cleared anyway", ResponseCode.successful, res); 
+            }
+        } catch (error) {
+            
+            respondsSender(null, `Error deleting tokens:  ${error.message}`, ResponseCode.internalServerError, res); 
+        }
 
-    const getUser = asynchandler( async (req,res) =>{
-        const user = await User.findById(req.user._id)
+});
+
+
+//Get User Profile data
+const getUser = asynchandler( async (req,res) =>{
+        const user = await User.findById(req.userId)
 
         if (user) {
-            const{_id,name,email, photo,phone, bio} = user
-            res.status(200).json({
-                _id, name, email, photo, phone, bio,
-            });
+            userInfo={
+                _id:user._id,
+                firstname:user.firstname,
+                lastname:user.lastname,
+                email:user.email,
+                gender:user.gender,
+                dateOfBirth:user.dateOfBirth,
+                stateOfOrigin:user.stateOfOrigin,
+                tribe:user.tribe,
+                ethnicity:user.ethnicity,
+                }
+                respondsSender(userInfo, "User Profile displayed successfully", ResponseCode.successful, res);
         } else{
-            res.status(400)
-            throw new Error("User Not Found");
+            respondsSender(null, "User Not Found", ResponseCode.noData, res);
         } 
-    })
+});
 
-    //Get Login Status
- 
-    const loginStatus =  asynchandler( async (req,res) =>{
-        const token = req.cookies.token;
-        if(!token){
-            return res.json(false)
+
+//Get Login Status 
+const loginStatus =  asynchandler( async (req,res) =>{
+        
+        if(!req.loginStatus){
+            respondsSender(null, false, ResponseCode.badRequest, res);
         }
       //Verify  Token 
-      const verified = jwt.verify(token, process.env.JWT_SECRET)
-      if(verified) {
-        return res.json(true)
-      }
-      return res.json(false)
-    })
+      respondsSender(null, true, ResponseCode.successful, res);
+     
+});
 
-    //Update User
-    const updateUser = asynchandler ( async (req, res) =>{
+
+//Update User
+const updateUser = asynchandler ( async (req, res) =>{
         const user = await User.findById(req.user._id)
 
         if(user){
@@ -168,111 +296,119 @@ const registerUser = asynchandler( async (req, res) => {
             user.photo = req.body.photo || photo;
 
             const updatedUser = await user.save()
-            res.status(200).json({
+            const user={
                     _id: updatedUser._id, 
-                    name: updatedUser.name, 
-                    email: updatedUser.email, 
-                    photo: updatedUser.photo, 
-                    phone: updatedUser.phone, 
-                    bio: updatedUser.bio,
-            })
+            }
+            respondsSender(user, "User Info updated successfully", ResponseCode.successful, res);
         }  else {
-            res.status(404)
-            throw new  Error ("User not Found")
+            respondsSender(null, "User Not Found", ResponseCode.noData, res);
         }
-    });  
+});  
 
 
-    const changePassword = asynchandler (async (req,res) =>{
+// Change Password
+const changePassword = asynchandler (async (req,res) =>{
        const user = await User.findById(req.user._id);
        const {oldPassword, password} = req.body
        if(!user) {
-        res.status(400)
-        throw new Error ("User Not Found, Please Signup ")
+        respondsSender(null, "User Not Found, Please Sign-up", ResponseCode.noData, res);
        }
        //validate
        if(!oldPassword || !password) {
-        res.status(404)
-        throw new Error (" Please add old and New Password")
+        respondsSender(null, "Please add old and New Password", ResponseCode.noData, res);
        }
 
        //check if old password matched password in DB
        const passwordIsCorrect = await bcrypt.compare(oldPassword, user.password)
        
        //Save new Password
-
        if(user && passwordIsCorrect){
         user.password = password;
         await user.save();
-        res.status(200).send("Password changed Successfully")
+        
+        respondsSender(null, "Password changed Successfully", ResponseCode.successful, res);
        } else{
-        res.status(400);
-        throw new Error ("old Password is Incorrect")
+        respondsSender(null, "Old Password is Incorrect", ResponseCode.noData, res);
        }
 
-    })
+});
 
-    //forgot password Process
-    const forgotPassword = asynchandler (async (req, res) =>{
+
+//Forgot Password Process
+const forgotPassword = asynchandler (async (req, res) =>{
          const{email} = req.body
+         if(!email){
+            respondsSender(null, "Please add an email", ResponseCode.badRequest, res);
+         }
          const user  = await User.findOne({email})
          if(!user){
-            res.status(404)
-            throw new Error("user does not exist")
+            respondsSender(null, "User email does not exist", ResponseCode.noData, res);
          }
 
          // Delete token if it exists in DB
-         let token = await Token.findOne({userId: user._id})
+         try {
+            // Find and delete the token based on userId
+            const deletedToken = await Token.findOneAndDelete({ userId: user._id });
+        
+            if (deletedToken) {
+                console.log(`Token for userId deleted: ${user._id}`);
+            } else {
+                console.log(`No token found for userId: ${user._id}`);
+            }
+        } catch (error) {
+            console.error(`Error deleting token: ${error.message}`);
+        }
 
          //create Reset token
-         let resetToken = crypto.randomBytes(32).toString("hex") + user._id 
+         const resetToken = generateToken(user._id)
          
-            console.log(resetToken);
-        
- 
          //Hash token before Saving to DB
-         const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+        //  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
          //Save Token to DB
          await new Token ({
-            userId: user.id,
-            token: hashedToken,
-            createdAt: Date.now(),
-            expiresAt: Date.now()+ 30 * (60 *1000) //Thirty Minutes
+            userId: user._id,
+            token: resetToken,
          }).save()
 
+         const randomText = generateRandomString(12);
          //construct Reset URL
-            const resetUrl = `${process.env.FRONTEND_URL}/resetpassword/${resetToken}`
+            const resetUrl = `${process.env.FRONTEND_URL}reset-password?token=${resetToken}&&jzhdh=${randomText}`
          
          // Reset Email 
          const message = `
-                <h2> Hello ${user.name},/h2>
+                <h2> Hello ${user.lastname},</h2>
                 <p> Please use the url below to reset your password </p>
-                <p> This reset link is valid for only 30 minutes </p>
+                <p> This reset link is valid for only 5 minutes </p>
                 
                 <a href=${resetUrl} clicktracking = off > ${resetUrl}</a>
                 
                 <p> Regards ... </p>
-                <p> Inventory Team. </p>`;
+                <p> Awarri LLM Team. </p>`;
                 const subject = "Password Reset Request"
                 const send_to = user.email  
                 const sent_from = process.env.EMAIL_USER
  
                 try {
                     await sendEmail(subject, message, send_to, sent_from)
-                    res.status(200).json({success:true, message: "Reset Email Sent"})
+                    respondsSender(resetUrl, "Reset Email Sent", ResponseCode.successful, res);
+
                 } catch (error) {
-                    res.status(500)
-                    throw new Error ("Email not Sent, Please try again")
+                    
+                    respondsSender(null, "Email not Sent, Please try again"+error.message, ResponseCode.internalServerError, res);
                 }
                 
             
-    })
+});
 
-    //Reset Password
-        const resetPassword = asynchandler( async (req, res) =>{
+//Reset Password
+const resetPassword = asynchandler( async (req, res) =>{
             const {password} = req.body
-            const {resetToken} = req.params
-        
+            const {resetToken} = req.body
+            console.log(resetToken);
+            if (!password || !resetToken) {
+                respondsSender(null, "password and reset token needed", ResponseCode.badRequest, res);
+            }
+
             //Hash token,  then Compare to Token in DB
             const hashedToken = crypto
             .createHash("sha256")
@@ -281,23 +417,33 @@ const registerUser = asynchandler( async (req, res) => {
         
             //Find Token in DB before reseting
             const userToken = await Token.findOne({
-                token: hashedToken,
-                expiresAt:{$gt: Date.now() }
+                token: resetToken,
             })
         
         if(!userToken){
-            res.status(404);
-            throw new Error ("Invalid or Expired Token");
+           
+            respondsSender(null, "Invalid or Expired Token", ResponseCode.invalidToken, res);
         }
     
         //Find user
         const user = await User.findOne({_id: userToken.userId})
         user.password = password
         await user.save()
-        res.status(200).json({
-            message:"Password Reset Successful, Please Login"
-        })
-    })
+        //delete token from db
+        try {
+            // Find and delete the token based on userId
+            const deletedToken = await Token.findOneAndDelete({ userId: user._id });
+        
+            if (deletedToken) {
+                console.log(`Deleted token for userId: ${user._id}`);
+            } else {
+                console.log(`No token found for userId: ${user._id}`);
+            }
+        } catch (error) {
+            console.error(`Error deleting token: ${error.message}`);
+        }
+        respondsSender(null, "Password Reset Successful, Please Login", ResponseCode.successful, res);
+});
 
  
 module.exports = {
@@ -309,5 +455,6 @@ module.exports = {
     updateUser,
     changePassword,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    verifyUser
 }  

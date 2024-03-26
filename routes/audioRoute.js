@@ -1,18 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const { createAudio, getAudios, getAudio, deleteAudio, updateAudio ,testAudio} = require("../controllers/audioController");
+const { createAudio, getAudios, getAudio, deleteAudio, updateAudio } = require("../controllers/audioController");
 const protect = require("../middleWare/authMiddleware");
-const { upload } = require("../utils/fileUpload");
+// const { upload } = require("../utils/fileUpload");
 
 
 
-// router.post("/", protect, upload.single("image"), createAudio) //upload.array for multiple file 
-router.post("/", createAudio)
+
+router.post("/create", protect, createAudio)
 // router.patch("/:id",  upload.single("audio"), updateAudio) //upload.array for multiple file 
-// router.get("/",  getAudios); 
-// router.get("/:id",  getAudio); 
-// router.delete("/:id", protect, deleteAudio) 
+router.get("/", protect, getAudios); 
+router.post("/singleaudio", protect, getAudio); 
+router.delete("/:id", protect, deleteAudio) 
 
-router.get("/test", testAudio) 
 
 module.exports = router 

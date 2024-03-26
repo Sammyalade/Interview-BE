@@ -1,157 +1,123 @@
 const asyncHandler = require("express-async-handler");
-const Audio = require("../models/WordBankModel")
-const {fileSizeFormatter} = require( "../utils/fileUpload");
-const cloudinary = require ("cloudinary").v2;
+const Audio = require("../models/AudioModel")
+const { respondsSender } = require('../middleWare/respondsHandler');
+const { ResponseCode } = require('../utils/responseCode');
 
 const testAudio = asyncHandler (async(req, res)=>{
-    res.status(201).json("this works");
-})
+    respondsSender(null, "This EndPoint works", ResponseCode.successful, res);})
 
-const createAudio = asyncHandler (async (req, res) =>{
-    const {user, name, language, filePath, description} = req.body
+
+// Create Audio
+const createAudio = asyncHandler(async (req, res) => {
+        const { userId, translatedWord, languageTranslatedTo, recordedVoice, wordId } = req.body;
     
-    // validation
-    if (!user|| !name || !language || !filePath  ) {
-        res.status(400)
-        throw new error ("please fill in all fields")
+        // Validation
+        if (!userId || !translatedWord || !languageTranslatedTo || !recordedVoice || !wordId) {
+            return respondsSender(null, "Please fill in all fields: userId, translatedWord, languageTranslatedTo, recordedVoice, wordId", ResponseCode.badRequest, res);
+        }
+    
+        try {
+            // Create Audio
+            const createdAudio = await Audio.create({
+                recordedVoice,
+                translatedWord,
+                languageTranslatedTo,
+                wordId,
+                recordedVoice,
+                userId
+            });
+    
+            // Check if creation was successful
+            if (createdAudio) {
+                respondsSender(createdAudio, "Audio created successfully", ResponseCode.successful, res);
+            } else {
+                respondsSender(null, "Failed to create audio", ResponseCode.internalServerError, res);
+            }
+        } catch (error) {
+            respondsSender(null, "An error occurred while creating audio", ResponseCode.internalServerError, res);
+        }
+});
+ 
+
+// Get all Audios
+ const getAudios = asyncHandler(async(req, res) =>{
+    const Audios = await Audio.find().sort("-createdAt");
+    respondsSender(Audios, "All audio files gotten successfully", ResponseCode.successful, res);
+ })
+
+
+ // Get a Single Audio
+ const getAudio = asyncHandler(async(req,res) =>{
+    const{_id}=req.body;
+    if (!_id) {
+        respondsSender(null, "Please pass an id", ResponseCode.badRequest, res);
+    }
+    const fetchedAudio = await Audio.findById(_id)
+    
+    // if Audio Doesn't Exist
+    if (!fetchedAudio){
+        respondsSender(null, "No Audio Found", ResponseCode.noData, res);
+    }
+    respondsSender(fetchedAudio, "Audio found successfully", ResponseCode.successful, res);
+ })
+
+
+ // Delete Audio
+ const deleteAudio = asyncHandler(async(req,res) =>{
+    if (!req.params.id) {
+        respondsSender(null, "Please pass an id", ResponseCode.badRequest, res);
+    }
+    const deletedAudio = await Audio.findById(req.params.id)
+    
+    // if Audio Doesn't Exist
+    if (!deletedAudio){
+        respondsSender(null, "Audio not found", ResponseCode.noData, res);
     }
 
-    //Handle  Audio uploads
-// let fileData = {}
-// if(req.file){
-//     // Save Audio to Cloudinary
-//     let uploadedFile;
-//         try {
-//             uploadedFile = await cloudinary.uploader.upload(req.file.path, {folder: name, resource_type: "video"})
-//         } catch (error){
-//             res.status(500)
-//             throw new Error ("sound could not be uploaded")
-//         }
-//     fileData = {
-//         fileName: req.file.originalname,
-//         filePath: uploadedFile.secure_url,
-//         filetype: req.file.mimetype,
-//         fileSize: fileSizeFormatter(req.file.size, 2),
+    await deletedAudio.remove()
+    respondsSender(null, "Audio Deleted", ResponseCode.successful, res);
+ })
+
+
+ //Update Audio
+const updateAudio = asyncHandler (async (req, res) =>{
+        const {userId, translatedWord, languageTranslatedTo, recordedVoice} = req.body
+        // validation
+        if (!userId|| !translatedWord || !languageTranslatedTo || !recordedVoice  ) {
+            respondsSender(null, "please fill in all fields", ResponseCode.badRequest, res);
+        }
+        const AudioToUpdate = await Audio.findById(_id)
         
-//     } 
-// }
 
-  //Create Audio
-  // const Audio = await Audio.create({
-  //   // user: req.user.id,
-  //   wordName,
-  //   language,
-  //   filepath: filePath,
-  // });
+        // if Word doesn't exist
+        if (!AudioToUpdate){
+            
+            respondsSender(null, "Audio not found", ResponseCode.badRequest, res);  
 
-  res.status(201).json("this works" + wordName);
-});
-
-
-// // Get all Audios
-//  const getAudios = asyncHandler(async(req, res) =>{
-//     const Audios = await Audio.find().sort("-createdAt");
-//     res.status(200).json(Audios);
-//  })
-
-//  // Get a Single Audio
-//  const getAudio = asyncHandler(async(req,res) =>{
-//     const Audio = await Audio.findById(req.params.id)
-
-//     // if Audio Doesn't Exist
-//     if (!Audio){
-//         res.status(404)
-//         throw new Error("Audio not found");
-//     }
-//     res.status(200).json(Audio);
-//  })
-
-//  // Delete Audio
-//  const deleteAudio = asyncHandler(async(req,res) =>{
-//     const Audio = await Audio.findById(req.params.id)
-
-//     // if Audio Doesn't Exist
-//     if (!Audio){
-//         res.status(404)
-//         throw new Error("Audio not found");
-//     }
-
-//     // Match Audio to it user
-//     if (Audio.user.toString() != req.user.id){
-//         res.status(401)
-//          throw new Error("User Not authorized ")
-//     }
-//     await Audio.remove()
-//     res.status(200).json({message: "Audio Deleted"});
-//  })
-
-// //Update Audio
-// const updateAudio = asyncHandler (async (req, res) =>{
-//     const {name, category, quantity, price, description} = req.body;
-//     const {id}=  req.params
-
-//     const Audio = await Audio.findById(id)
-
-//     // if Audio doesn't exist
-//     if (!Audio){
-//         res.status(404)
-//         throw new Error("Audio not found");
-//     }
-
-//     // Match Audio to it user
-// if (Audio.user.toString() != req.user.id){
-//     res.status(401)
-//      throw new Error("User Not authorized ")
-// }
-
-//Handle  Audio uploads
-// let fileData = {}
-// if(req.file){
-//     // Save Audio to Cloudinary
-//     let uploadedFile;
-//         try {
-//             uploadedFile = await cloudinary.uploader.upload(req.file.path, {folder: name, resource_type: "mp3"})
-//         } catch (error){
-//             res.status(500)
-//             throw new Error ("Audio could not be uploaded")
-//         }
-//     fileData = {
-//         fileName: req.file.originalname,
-//         filePath: uploadedFile.secure_url,
-//         filetype: req.file.mimetype,
-//         fileSize: fileSizeFormatter(req.file.size, 2),
-
-//     }
-// }
-
-//     //update Audio
-
-//     const updatedAudio = await Audio.findByIdAndUpdate({_id: id},
-//          { name,
-//         category,
-//         quantity,
-//         price,
-//          description,
-//         image : Object.keys(fileData).length === 0 ?  Audio?.image : fileData,
-//         },
-//         {
-//             new: true,
-//             runValidators: true
-//         });
-
-        
-    //     res.status(200).json(updatedAudio)
-    
-    // })
+        }   
+        //update Word
+        const updatedAudio = await Audio.findByIdAndUpdate({_id},
+             { 
+                recordedVoice,
+                translatedWord,
+                languageTranslatedTo,
+                recordedVoice
+            },
+            {
+                new: true,
+                runValidators: true
+            });
+        respondsSender(updatedWord, "Audio updated successfully", ResponseCode.successful, res);  
+      
+})
     
 
     
 module.exports = {
     createAudio,
-    // getAudios,
-    // getAudio,
-    // deleteAudio,
-    // updateAudio,
-    testAudio,
+    getAudios,
+    getAudio,
+    deleteAudio,
+    updateAudio,
 
 }

@@ -7,9 +7,17 @@ const userRoute = require("./routes/userRoute");
 const audioRoute = require("./routes/audioRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
+const feedbackRoute = require("./routes/feedbackRoute");
 const errorHandler = require("./middleWare/errorMiddleware");
 const cookieParser = require("cookie-parser");
 const path = require("path");
+
+const multer = require('multer');
+
+
+// Set up Multer for file upload
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 mongoose.set("strictQuery", true);
 
@@ -33,6 +41,7 @@ app.use("/api/users", userRoute);
 app.use("/api/audio", audioRoute);
 app.use("/api/word", wordBankRoute);
 app.use("/api/contactus", contactRoute);
+app.use("/api/feedback", feedbackRoute);
 
 //Routes
 app.get("/", (req, res) => {
@@ -42,7 +51,7 @@ app.get("/", (req, res) => {
 app.use(errorHandler);
 //connect to DB and start Server
 const PORT = process.env.PORT || 4000;
-mongoose.set('debug', true);
+// mongoose.set('debug', true);
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {

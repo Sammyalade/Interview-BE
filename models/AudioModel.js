@@ -1,34 +1,30 @@
 const mongoose = require("mongoose");
 
 const audioSchema = mongoose.Schema({
-wordName:{
+ translatedWord:{
     type: String,
-    required: [true, "Please add a audio name"],
+    required: [true, "Please add word translated"],
     trim: true
 },
-EnglishWord:{
-    type: String,
-    required: [true, "Please add a audio name"],
-    trim: true
-},
-
-wordBank_Id:{
+wordId:{
     type: mongoose.Schema.Types.ObjectId, 
     required: [true, "Please add word id"],
+    ref:"word",
 },
-language :{  
+languageTranslatedTo :{  
     type: String,
-    required: [true, "Please add a Language"],
+    required: [true, "Please add Language you translated to"],
     trim: true,
 }, 
-filePath :{  
+recordedVoice :{  
     type: String,
     required: [true, "sound is needed"],
 }, 
-user_id :{  
+userId :{  
     type: mongoose.Schema.Types.ObjectId, 
     required: [true, "Please add contributor id"],
     trim: true,
+    ref:"user",
 }, 
 
 },{

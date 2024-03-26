@@ -9,15 +9,6 @@ userId: {
 token: {
     type: String,
     required: true,
-},
-createdAt: {
-    type: String,
-    required: true,
-},
-expiresAt: {
-    type: String,
-    required: true,
-}
-})
+},}, {timestamps: true,})
 const Token = mongoose.model("Token", tokenSchema)
 module.exports = Token

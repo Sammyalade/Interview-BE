@@ -29,5 +29,5 @@ const contactUs = asyncHandler (async(req, res)=>{
 }); 
 
 module.exports = {
-    contactUs,
+    contactUs
 }

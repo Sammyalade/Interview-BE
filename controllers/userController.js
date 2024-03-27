@@ -42,7 +42,7 @@ const registerUser = asynchandler(async (req, res) => {
         email,
         gender,
         dateOfBirth,
-        stateOfOrigin,
+        accent,
         tribe,
         ethnicity,
         consent,
@@ -50,7 +50,7 @@ const registerUser = asynchandler(async (req, res) => {
       } = req.body;
   
       // Validation Check
-      if (!firstname || !lastname || !email || !gender || !dateOfBirth || !stateOfOrigin || !tribe || !ethnicity || !consent || !password) {
+      if (!firstname || !lastname || !email || !gender || !dateOfBirth || !accent || !tribe || !ethnicity || !consent || !password) {
        
         respondsSender(null, "Please fill in all required fields", ResponseCode.badRequest, res);  
 
@@ -75,7 +75,7 @@ const registerUser = asynchandler(async (req, res) => {
         email:lowerEmail,
         gender,
         dateOfBirth,
-        stateOfOrigin,
+        accent,
         tribe,
         ethnicity,
         consent,
@@ -185,7 +185,7 @@ const loginUser = asynchandler(async(req,res) => {
                     email:user.email,
                     gender:user.gender,
                     dateOfBirth:user.dateOfBirth,
-                    stateOfOrigin:user.stateOfOrigin,
+                    accent:user.accent,
                     tribe:user.tribe,
                     ethnicity:user.ethnicity,
                     },
@@ -260,7 +260,7 @@ const getUser = asynchandler( async (req,res) =>{
                 email:user.email,
                 gender:user.gender,
                 dateOfBirth:user.dateOfBirth,
-                stateOfOrigin:user.stateOfOrigin,
+                accent:user.accent,
                 tribe:user.tribe,
                 ethnicity:user.ethnicity,
                 }

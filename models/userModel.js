@@ -31,9 +31,9 @@ const userSchema = mongoose.Schema({
         type: String,
         required: [true, "Please add Date of Birth"]
     },
-    stateOfOrigin: {
+    accent: {
         type: String,
-        required: [true, "Please add State of Origin"]
+        required: [true, "Please add accent"]
     },
     tribe: {
         type: String,

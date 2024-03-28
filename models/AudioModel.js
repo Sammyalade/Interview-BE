@@ -18,7 +18,7 @@ languageTranslatedTo :{
 }, 
 recordedVoice :{  
     type: String,
-    required: [true, "sound is needed"],
+    required: [true, "Sound is needed"],
 }, 
 userId :{  
     type: mongoose.Schema.Types.ObjectId, 

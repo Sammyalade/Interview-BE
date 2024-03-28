@@ -8,7 +8,7 @@ const transporter = nodemailer.createTransport({
         pass: 'jevn xdrl egpc vhyn',
     },
 });
-
+ 
 // Define email options
 const mailOptions = {
     from: 'developer@awarri.com',

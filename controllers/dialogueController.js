@@ -57,18 +57,21 @@ dialogues.forEach((dialogue, index) => {
 
 // Output the array of formatted dialogues
 console.log(formattedDialogues);
-
 // Clean up created array
 const filteredArray = formattedDialogues.map(obj => {
   const key = Object.keys(obj)[0]; // Get the key of the object
   const arr = obj[key]; // Get the array value
-  if (arr[0].startsWith("Dialogue")) {
-    const trimmedArr = arr.slice(1).map(item => item.trim()); // Remove the first element and trim each item
-    return { [key]: trimmedArr };
+  if (arr.length > 1) { // Check if there are more than one element in the array
+    const trimmedArr = arr.slice(1).map(item => item.trim()).filter(item => item !== ""); // Remove the first element, trim each item, and filter out empty strings
+    if (trimmedArr.length <= 2) { // Check if the resulting array has at most two elements
+      return { [key]: trimmedArr };
+    } else {
+      // Handle the case where there are more than two inner items (e.g., log a warning or discard the dialogue)
+      respondsSender(null, "bad File", ResponseCode.successful, res);
+    }
   }
-  return obj; // Leave the object unchanged if it doesn't start with "Dialogue"
+  return obj; // Leave the object unchanged if it doesn't meet the conditions
 });
-
 
 
     // Return success response

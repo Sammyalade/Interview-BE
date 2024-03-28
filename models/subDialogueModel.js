@@ -17,7 +17,7 @@ const subDialogueSchema = mongoose.Schema({
         required: [true, "id not included "],
         ref: "dialogue"
     },
-    scenerio: {
+    scenario: {
         type: String, 
     },
 

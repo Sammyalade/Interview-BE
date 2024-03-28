@@ -12,7 +12,7 @@ const dialogueSchema = mongoose.Schema({
     domain: {
         type: String,
     },
-    scenerio: {
+    scenario: {
         type: String,
     },
 

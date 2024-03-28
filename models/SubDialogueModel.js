@@ -6,19 +6,29 @@ const subDialogueSchema = mongoose.Schema({
         required: [true, "id not included "],
         ref: "user"
     },
+
     text: {
         type: String,
         required: true
     },
+
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included "],
         ref: "dialogue"
     },
-    scenerio: {
-        type: String,
-    }
 
+    assignmentStatus: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+
+    skippedStatus: {
+        type: Boolean,
+        required: true,
+        default: false
+    }
 });
 
 const subDialogue = mongoose.model("subDialogue", subDialogueSchema);

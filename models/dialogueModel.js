@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 const dialogueSchema = mongoose.Schema({
     id: {
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, "Please add an ID"]
+        required: [true, "id not included "]
     },
     title: {
         type: String,
@@ -36,4 +36,5 @@ dialogueSchema.pre("save", async function(next) {
 });
 
 const Dialogue = mongoose.model("Dialogue", dialogueSchema);
+
 module.exports = Dialogue;

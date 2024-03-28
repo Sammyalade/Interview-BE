@@ -1,215 +1,86 @@
 const asyncHandler = require("express-async-handler");
-const dialogueModel = require("../models/dialogueModel");
-const subBdialogueModel = require("../models/dialogueModel");
 const { respondsSender } = require('../middleWare/respondsHandler');
 const { ResponseCode } = require('../utils/responseCode');
 
-
-//route functions
-const createWord = asyncHandler(async (req, res) => {
-    const { EnglishWord, Yoruba, Igbo, Hausa, Definition } = req.body;
-    // Validation
-    if (!EnglishWord || !Yoruba || !Igbo || !Hausa || !Definition) {
-        res.status(400).json({ error: "Please fill in all fields" });
-        return; // Added return to exit the function after sending the response
-    }
-
-    // Create Word
-    const Word = await WordBank.create({
-        Hausa,
-        Igbo,
-        Yoruba,
-        EnglishWord,
-        Definition,
-    });
-    const data={
-        words:Word
-    }
-    respondsSender(data, "successful", ResponseCode.successful, res);
+const getDialogue = asyncHandler(async (req, res) => {
+  respondsSender(null, "Hello Dialogue Route and controller is working", ResponseCode.successful, res);
 });
 
-// Get all Words
-const getWords = asyncHandler(async (req, res) => {
-    console.log("Fetching 10 random words");
+const createDialogueWithDoc = asyncHandler(async (req, res) => {
+  try {
+    if (!req.file) {
+      respondsSender(null, "File not found", ResponseCode.badRequest, res);
+      return;
+    }
 
-    // Use MongoDB $sample to get a random sample of 10 documents
-    const randomWords = await WordBank.aggregate([
-        { $sample: { size: 10 } }
-    ]);
-
-    const data = {
-        words: randomWords
-    };
-
-    respondsSender(data, "successful", ResponseCode.successful, res);
-});
-
-// Get all Words
-
-const getAllWords = asyncHandler(async (req, res) => {
+    const filePath = req.file.path;
     
+    // Read the contents of the DOCX file using mammoth
+    const mammoth = require("mammoth");
+    const { value } = await mammoth.extractRawText({ path: filePath });
+    const docxContent = value.trim(); // Extracted text content
+
+    console.log(docxContent);
+    //create algorithm to convert extracted doc into object
+
+  
+// Split the text into individual dialogues
+const dialogues = docxContent.split("\n\n\n\n");
+
+// Initialize an empty array to store the formatted dialogues
+const formattedDialogues = [];
+
+// Iterate over each dialogue and format it into an object
+dialogues.forEach((dialogue, index) => {
+  const lines = dialogue.split("\n\n"); // Split the dialogue into individual lines
+  const formattedDialogue = {};
+
+  // Iterate over each line in the dialogue
+  lines.forEach((line, lineIndex) => {
+    const speakerIndex = line.indexOf(":"); // Find the index of the colon indicating the speaker
+    const speaker = line.slice(0, speakerIndex); // Extract the speaker's name
+    const dialogueText = line.slice(speakerIndex + 1).trim(); // Extract the dialogue text
     
-    try {
-        // Get all words from the WordBank collection
-        const allWords = await WordBank.find({});
-        const data={
-            words:allWords
-        }
-      
-        respondsSender(data, "successful", ResponseCode.successful, res);
-      } catch (error) {
-        // Handle any errors that may occur during the database query
-        console.error("Error fetching words:", error);
-        
-        respondsSender(null, "Internal Server Error"+error, ResponseCode.internalServerError , res);
-
-
-    }
-      
-});
-
-
-const getSingleWord = asyncHandler(async (req, res) => {
-    
-    const {_id} = req.body
-    if (!_id) {
-        respondsSender(null, "Please pass an _id", ResponseCode.badRequest, res);
-    }
-    const Word = await WordBank.find({_id}).sort("-createdAt");
-    const data={
-        word:Word[0]
-    }
-    
-    respondsSender(data, "successful", ResponseCode.successful, res);
-
-});
-
-
-// Custom validation function (you can replace this with your own validation logic)
-const isValidWord = (id) => {
-   
-    return id && typeof id === 'string' && id.length > 0;
-};
-const getLimitWord = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-
-    console.log(id);
-    // Validate that id is a valid word (customize the validation logic as needed)
-    if (!isValidWord(id)) {
-        respondsSender(null, "Invalid word ID", ResponseCode.badRequest, res);
-    }
-
-    const Words = await WordBank.find({}).sort("-createdAt").limit(id);
-    
-    respondsSender(Words, "successful", ResponseCode.successful, res);
-});
-
-
-// Delete Word
-const deleteWord = asyncHandler(async (req, res) => {
-    const wordId = req.params.id;
-  
-    // Find the Word by ID
-    const word = await WordBank.findById(wordId);
-  
-    // If Word Doesn't Exist
-    if (!word) {
-      respondsSender(null, "Word not found", ResponseCode.badRequest, res);  
-
-    }
-  
-    // Remove the Word
-    await word.remove();
-  
-    respondsSender(null, "word deleted", ResponseCode.successful, res);  
-
-});
-  
-
-//Update Word
-const updateWord = asyncHandler (async (req, res) => {
-        const { EnglishWord, Yoruba, Igbo, Hausa, Definition, _id } = req.body;
-        // Validation
-        if (!EnglishWord || !Yoruba || !Igbo || !Hausa || !Definition || !_id) {
-            respondsSender(null, "Please fill in all fields", ResponseCode.badRequest, res);  
-        }
-
-        const Word = await WordBank.findById(Id)
-
-        // if Word doesn't exist
-        if (!Word){
-            
-            respondsSender(null, "word not found", ResponseCode.noData, res);  
-
-        }
-
-        
-        //update Word
-
-        const updatedWord = await WordBank.findByIdAndUpdate({_id: id},
-             { 
-                EnglishWord, Yoruba, Igbo, Hausa, Id,
-            },
-            {
-                new: true,
-                runValidators: true
-            });
-        respondsSender(updatedWord, "successful", ResponseCode.successful, res);  
-
-});
-    
-
-
-const csvtojson = require('csvtojson');
-const createWordWithCsv = asyncHandler(async (req, res) => {
-    try {
-      if (!req.file) {
-        respondsSender(null, "File not found", ResponseCode.badRequest, res);  
-      }
-  
-      // Access the path of the uploaded file
-      const filePath = req.file.path;
-  
-      // Convert CSV buffer to JSON using csvtojson library
-      const jsonData = await csvtojson().fromFile(filePath);
-      if (!jsonData) {
-        respondsSender(null, "Json could not be converted", ResponseCode.noData, res); 
-      }
-      //upload the json into db
-
-      
-
-      // Iterate through JSON data and check if each document exists, then merge or insert accordingly
-      for (const item of jsonData) {
-        const existingDocument = await WordBank.findOne({ "EnglishWord": item["EnglishWord"], "Definition":item["Definition"] });
-  
-        if (existingDocument) {
-          // Merge data if document exists
-          await WordBank.updateOne({ "_id": existingDocument["_id"] }, { "$set": item });
-        } else {
-          // Insert new document if it doesn't exist
-          await WordBank.create(item);
-        }
-      }
-  
-      console.log('Data uploaded successfully.');
-
-      // Send the JSON data and file path in the response
-      respondsSender(null, "file uploaded and merged to db", ResponseCode.successful, res); 
-    } catch (error) {
-      respondsSender(null, "Internal Server Error"+error, ResponseCode.internalServerError, res); 
+    // Add the speaker's line to the formatted dialogue object
+    if (lineIndex === 0) {
+      // If it's the first line, initialize a new array for the speaker's lines
+      formattedDialogue[`Dialogue ${index + 1}`] = [dialogueText];
+    } else {
+      // If it's not the first line, push the speaker's line to the array
+      formattedDialogue[`Dialogue ${index + 1}`].push(`${speaker}: ${dialogueText}`);
     }
   });
-  
-  
-    
+
+  // Push the formatted dialogue object to the array
+  formattedDialogues.push(formattedDialogue);
+});
+
+// Output the array of formatted dialogues
+console.log(formattedDialogues);
+
+// Clean up created array
+const filteredArray = formattedDialogues.map(obj => {
+  const key = Object.keys(obj)[0]; // Get the key of the object
+  const arr = obj[key]; // Get the array value
+  if (arr[0].startsWith("Dialogue")) {
+    const trimmedArr = arr.slice(1).map(item => item.trim()); // Remove the first element and trim each item
+    return { [key]: trimmedArr };
+  }
+  return obj; // Leave the object unchanged if it doesn't start with "Dialogue"
+});
+
+
+
+    // Return success response
+    respondsSender(filteredArray, "File uploaded successfully", ResponseCode.successful, res);
+  } catch (error) {
+    // Handle errors
+    respondsSender(error.message, null, ResponseCode.serverError, res);
+  }
+});
+
+
 module.exports = {
-    createWord,
-    getWords,
-    getSingleWord,
-    getLimitWord,
-    deleteWord,
-    updateWord,
-    createWordWithCsv,
-    getAllWords
-}
+  createDialogueWithDoc,
+  getDialogue
+};

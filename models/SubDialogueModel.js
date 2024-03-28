@@ -16,7 +16,7 @@ const subDialogueSchema = mongoose.Schema({
         ref: "dialogue"
     },
     scenerio: {
-        type: String,
+        type: String, 
     }
 
 });

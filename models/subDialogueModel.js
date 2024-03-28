@@ -17,8 +17,8 @@ const subDialogueSchema = mongoose.Schema({
         required: [true, "id not included "],
         ref: "dialogue"
     },
-    scenario: {
-        type: String,
+    scenerio: {
+        type: String, 
     },
 
     assignmentStatus: {
@@ -34,6 +34,6 @@ const subDialogueSchema = mongoose.Schema({
     }
 });
 
-const subDialogue = mongoose.model("SubDialogue", subDialogueSchema);
+const subDialogue = mongoose.model("subDialogue", subDialogueSchema);
 
 module.exports = subDialogue;

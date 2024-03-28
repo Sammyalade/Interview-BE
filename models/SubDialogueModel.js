@@ -27,7 +27,7 @@ const subDialogueSchema = mongoose.Schema({
     skippedStatus: {
         type: Boolean,
         required: true,
-        default: true
+        default: false
     }
 });
 

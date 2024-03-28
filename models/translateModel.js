@@ -14,7 +14,7 @@ const translateSchema = mongoose.Schema({
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included"],
-        ref: "dialoge"
+        ref: "dialogue"
     },
 
     subDialogueId: {

@@ -15,7 +15,7 @@ const userTaskSchema = mongoose.Schema({
     },
 
     subDialogueId: {
-        type: mongoose.Schema.Types.ObjectI,
+        type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included "],
         ref: "subDialogue"
     },

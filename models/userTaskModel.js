@@ -1,13 +1,7 @@
 const mongoose = require('mongoose');
 
 const userTaskSchema = mongoose.Schema({
-    id: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included "],
-        ref: "user"
-    },
-
-    userTaskStatus: {
+    taskStatus: {
         type: String,
         required: true,
         enum: ["Done", "Skipped", "Undone"],
@@ -24,6 +18,11 @@ const userTaskSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included"],
         ref: "user"
+    },
+    type: {
+        type: String,
+        required: true,
+        default: "dialogue"
     }
 })
 

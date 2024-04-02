@@ -1,5 +1,6 @@
 const asynchandler = require("express-async-handler");
 const User = require("../models/userModel");
+const daStatus = require("../models/dAssignmentStatus");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const Token = require("../models/tokenModel");
@@ -28,7 +29,6 @@ function generateRandomString(length) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       result += characters.charAt(randomIndex);
     }
-  
     return result;
 }
 
@@ -89,7 +89,7 @@ const registerUser = asynchandler(async (req, res) => {
       // Construct Reset URL
       const verifyUrl = `${process.env.FRONTEND_URL}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
   
-      // Reset Email
+      // Reset Email.
       const message = `
         <h2> Hello ${user.firstname},</h2>
         <p> Please use the URL below to verify your registration </p>
@@ -191,6 +191,15 @@ const loginUser = asynchandler(async(req,res) => {
                     },
                  token:token
               }
+
+            // Check Tasks
+            const foundDaStatus = await daStatus.findOne({userId: user._id, status: true}) 
+            if(!foundDaStatus) {
+                // Assign tasks
+                
+               }
+
+
               respondsSender(data, "Login successful", ResponseCode.successful, res); 
 
             }
@@ -445,6 +454,12 @@ const resetPassword = asynchandler( async (req, res) =>{
         respondsSender(null, "Password Reset Successful, Please Login", ResponseCode.successful, res);
 });
 
+// Get Accent of User
+const getAccent = asynchandler(async (req, res) => {
+    const allAccents = ["Yoruba", "Hausa", "Igbo"];
+    respondsSender(allAccents, "Successful", ResponseCode.successful, res)
+});
+
  
 module.exports = {
     registerUser,
@@ -456,5 +471,6 @@ module.exports = {
     changePassword,
     forgotPassword,
     resetPassword,
-    verifyUser
+    verifyUser,
+    getAccent
 }  

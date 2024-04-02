@@ -1,6 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const { respondsSender } = require('../middleWare/respondsHandler');
 const { ResponseCode } = require('../utils/responseCode');
+const Dialogue = require("../models/dialogueModel");
+const subDialogue = require("../models/subDialogueModel");
 
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(null, "Hello Dialogue Route and controller is working", ResponseCode.successful, res);
@@ -55,8 +57,6 @@ dialogues.forEach((dialogue, index) => {
   formattedDialogues.push(formattedDialogue);
 });
 
-// Output the array of formatted dialogues
-console.log(formattedDialogues);
 // Clean up created array
 const filteredArray = formattedDialogues.map(obj => {
   const key = Object.keys(obj)[0]; // Get the key of the object
@@ -75,11 +75,69 @@ const filteredArray = formattedDialogues.map(obj => {
 
 
     // Return success response
-    respondsSender(filteredArray, "File uploaded successfully", ResponseCode.successful, res);
+    //respondsSender(filteredArray, "File uploaded successfully", ResponseCode.successful, res);
+
+// Save the data to the database
+try {
+  for (const item of filteredArray) {
+    const dialogueTitle = Object.keys(item)[0];
+    const dialogueTexts = item[dialogueTitle];
+
+    // Check if any subDialogue already exists for any of the dialogueTexts
+    let subDialoguesExist = false;
+    for (const text of dialogueTexts) {
+      const existingSubDialogue = await subDialogue.findOne({ text });
+      if (existingSubDialogue) {
+        subDialoguesExist = true;
+        break; // No need to check further if a subDialogue already exists
+      }
+    }
+
+    // If no subDialogue exists, save the dialogue and associated subDialogues
+    if (!subDialoguesExist) {
+      // Create a new dialogue instance
+      const dialogue = new Dialogue({
+        title: dialogueTitle,
+        domain: "not specified", // You may customize this according to your needs
+        scenerio: "not specified", // You may customize this according to your needs
+      });
+
+      // Save the dialogue instance to the database
+      await dialogue.save();
+
+      // Save subDialogue instances associated with the dialogue
+      for (const text of dialogueTexts) {
+        const subDialogueItem = new subDialogue({
+          text,
+          dialogueId: dialogue._id, // Reference to the dialogue
+          assignmentStatus: false,
+          skippedStatus: false,
+        });
+        await subDialogueItem.save();
+      }
+    } else {
+      console.log(`Skipping saving dialogue '${dialogueTitle}' as subDialogues already exist.`);
+    }
+  }
+  console.log("Data saved successfully!");
+  respondsSender(filteredArray, "File uploaded successfully", ResponseCode.successful, res);
+} catch (error) {
+  console.error("Error saving data:", error);
+  respondsSender(error.message, null, ResponseCode.internalServerError, res);
+}
+
+
+
+
+
   } catch (error) {
     // Handle errors
     respondsSender(error.message, null, ResponseCode.serverError, res);
   }
+
+
+ 
+
 });
 
 

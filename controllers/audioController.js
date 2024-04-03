@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const Audio = require("../models/AudioModel")
+const Audio = require("../models/audioModel")
 const { respondsSender } = require('../middleWare/respondsHandler');
 const { ResponseCode } = require('../utils/responseCode');
 

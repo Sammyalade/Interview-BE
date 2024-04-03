@@ -1,9 +1,11 @@
 const asynchandler = require("express-async-handler");
 const User = require("../models/userModel");
 const daStatus = require("../models/dAssignmentStatus");
+const Token = require("../models/tokenModel");
+const subDialogue = require("../models/subDialogueModel");
+const userTask = require("../models/userTaskModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require('../middleWare/respondsHandler');
@@ -63,7 +65,6 @@ const registerUser = asynchandler(async (req, res) => {
       // Validation check if user email already exists  
       const userExists = await User.findOne({ email:lowerEmail });
       if (userExists) {
-        console.log('User already exists');
         respondsSender(null, "User already registered", ResponseCode.dataDuplication, res); 
        
       }
@@ -106,7 +107,8 @@ const registerUser = asynchandler(async (req, res) => {
       console.log(verifyUrl);
       const response={
         message:"Verification Email Sent",
-        url:verifyUrl
+        url:verifyUrl,
+        mail:message
         }
 
     //res.status(200).json(response);
@@ -194,11 +196,54 @@ const loginUser = asynchandler(async(req,res) => {
 
             // Check Tasks
             const foundDaStatus = await daStatus.findOne({userId: user._id, status: true}) 
-            if(!foundDaStatus) {
-                // Assign tasks
-                
-               }
+           
+        if (!foundDaStatus) {
+                try {
+                    // Retrieve all subDialogues from the database where assignmentStatus is false
+                    const allSubDialogues = await subDialogue.find({ assignmentStatus: false });
 
+   respondsSender(allSubDialogues, "User tasks already exist", ResponseCode.successful, res); 
+                    // Initialize an array to store the selected subDialogues
+                    const selectedSubDialogues = [];
+
+                    // Select up to 5 subDialogues
+                    for (let i = 0; i < 5 && i < allSubDialogues.length; i++) {
+                        selectedSubDialogues.push(allSubDialogues[i]);
+                    }
+
+                    // Initialize a variable to keep track of the alternating assignment status
+                    let assign = true;
+
+                    // Iterate over the selected subDialogues
+                    for (let i = 0; i < selectedSubDialogues.length; i++) {
+                        const subDialogueItem = selectedSubDialogues[i];
+
+                        // Create a new user task
+                        const newUserTask = new userTask({
+                            taskStatus: "Undone",
+                            subDialogueId: subDialogueItem._id,
+                            userId: user._id, // Replace with the actual user ID
+                            type: "dialogue"
+                        });
+
+                        // Assign task or skip based on the alternating assign status
+                        if (assign) {
+                            await newUserTask.save();
+                        }
+
+                        // Toggle the assignment status for the next iteration
+                        assign = !assign;
+                    }
+
+                    console.log("User tasks created successfully!");
+                    respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res); 
+                } catch (error) {
+                    console.error("Error creating user tasks:", error);
+                    respondsSender(null, "Error creating user tasks", ResponseCode.internalServerError, res); 
+                }
+            } else {
+                respondsSender(null, "User tasks already exist", ResponseCode.badRequest, res); 
+            }
 
               respondsSender(data, "Login successful", ResponseCode.successful, res); 
 

@@ -4,6 +4,7 @@ const userTaskSchema = mongoose.Schema({
     taskStatus: {
         type: String,
         required: true,
+        default:"Undone",
         enum: ["Done", "Skipped", "Undone"],
 
     },

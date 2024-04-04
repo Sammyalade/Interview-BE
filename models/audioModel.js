@@ -15,7 +15,7 @@ wordId:{
 
 languageTranslatedTo :{  
     type: String,
-    required: [true, "Please add Languagee you translated to"],
+    required: [true, "Please add Language you translated to"],
     trim: true,
 }, 
 

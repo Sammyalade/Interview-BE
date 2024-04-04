@@ -195,19 +195,22 @@ const loginUser = asynchandler(async(req,res) => {
               }
 
             // Check Tasks
-            const foundDaStatus = await daStatus.findOne({userId: user._id, status: true}) 
+            const foundDaStatus = await daStatus.findOne({userId: user._id, status: true})
+            // respondsSender(foundDaStatus, "User tasks created successfully!", ResponseCode.successful, res); 
            
         if (!foundDaStatus) {
                 try {
                     // Retrieve all subDialogues from the database where assignmentStatus is false
-                 const allSubDialogues = await subDialogue.find({ assignmentStatus: false });
+                    const allSubDialogues = await subDialogue.find({ assignmentStatus: false }).limit(20);
+
+                    // respondsSender(allSubDialogues, "User tasks created successfully!", ResponseCode.successful, res); 
 
 
                     // Initialize an array to store the selected subDialogues
                     const selectedSubDialogues = [];
 
                     // Select up to 5 
-                    for (let i = 0;  i < allSubDialogues.length; i += 2) {
+                    for (let i = 1;  i <= allSubDialogues.length; i += 2) {
                         selectedSubDialogues.push(allSubDialogues[i]);
                     }
 
@@ -215,7 +218,7 @@ const loginUser = asynchandler(async(req,res) => {
                     let assign = true;
 
                     // Iterate over the selected subDialogues
-                    for (let i = 0; i < selectedSubDialogues.length; i++) {
+                    for (let i = 0; i <= selectedSubDialogues.length; i++) {
                         const subDialogueItem = selectedSubDialogues[i];
 
                         // Create a new user task

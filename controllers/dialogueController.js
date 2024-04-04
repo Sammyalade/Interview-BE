@@ -1,6 +1,9 @@
 const asyncHandler = require("express-async-handler");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
+const Dialogue = require("../models/dialogueModel");
+const subDialogue = require("../models/subDialogueModel");
+const userTask = require("../models/userTaskModel");
 
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
@@ -61,8 +64,6 @@ const createDialogueWithDoc = asyncHandler(async (req, res) => {
       formattedDialogues.push(formattedDialogue);
     });
 
-    // Output the array of formatted dialogues
-    console.log(formattedDialogues);
     // Clean up created array
     const filteredArray = formattedDialogues.map((obj) => {
       const key = Object.keys(obj)[0]; // Get the key of the object
@@ -85,19 +86,294 @@ const createDialogueWithDoc = asyncHandler(async (req, res) => {
     });
 
     // Return success response
-    respondsSender(
-      filteredArray,
-      "File uploaded successfully",
-      ResponseCode.successful,
-      res
-    );
+    //respondsSender(filteredArray, "File uploaded successfully", ResponseCode.successful, res);
+
+    // Save the data to the database
+    try {
+      for (const item of filteredArray) {
+        const dialogueTitle = Object.keys(item)[0];
+        const dialogueTexts = item[dialogueTitle];
+
+        // Check if any subDialogue already exists for any of the dialogueTexts
+        let subDialoguesExist = false;
+        for (const text of dialogueTexts) {
+          const existingSubDialogue = await subDialogue.findOne({ text });
+          if (existingSubDialogue) {
+            subDialoguesExist = true;
+            break; // No need to check further if a subDialogue already exists
+          }
+        }
+
+        // If no subDialogue exists, save the dialogue and associated subDialogues
+        if (!subDialoguesExist) {
+          // Create a new dialogue instance
+          const dialogue = new Dialogue({
+            title: dialogueTitle,
+            domain: "not specified", // You may customize this according to your needs
+            scenerio: "not specified", // You may customize this according to your needs
+          });
+
+          // Save the dialogue instance to the database
+          await dialogue.save();
+
+          // Save subDialogue instances associated with the dialogue
+          for (const text of dialogueTexts) {
+            const subDialogueItem = new subDialogue({
+              text,
+              dialogueId: dialogue._id, // Reference to the dialogue
+              assignmentStatus: false,
+              skippedStatus: false,
+            });
+            await subDialogueItem.save();
+          }
+        } else {
+          console.log(
+            `Skipping saving dialogue '${dialogueTitle}' as subDialogues already exist.`
+          );
+        }
+      }
+      console.log("Data saved successfully!");
+      respondsSender(
+        filteredArray,
+        "File uploaded successfully",
+        ResponseCode.successful,
+        res
+      );
+    } catch (error) {
+      console.error("Error saving data:", error);
+      respondsSender(
+        error.message,
+        null,
+        ResponseCode.internalServerError,
+        res
+      );
+    }
   } catch (error) {
     // Handle errors
     respondsSender(error.message, null, ResponseCode.serverError, res);
   }
 });
 
+// Get a particular user dialogue tasks.
+const getUserTasks = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming you get the user ID from the request parameters
+    // return respondsSender(userId, "No tasks found for the user", ResponseCode.noData, res);
+
+    const userTasks = await userTask.find({ userId });
+
+    // Extract subDialogueIds and taskStages from userTasks
+    const subDialogueIdsWithTaskStages = userTasks.map((task) => ({
+      subDialogueId: task.subDialogueId,
+      taskStage: task.taskStage, // Assuming this is how you access the taskStage field
+    }));
+
+    // Query subDialogue using the extracted subDialogueIds
+    const subDialogues = await subDialogue.find({
+      _id: {
+        $in: subDialogueIdsWithTaskStages.map((item) => item.subDialogueId),
+      },
+    });
+
+    // Combine subDialogues with their corresponding taskStages
+    const subDialoguesWithTaskStages = subDialogues.map((subDialogueItem) => {
+      const { _id, ...rest } = subDialogueItem.toObject(); // Extract properties excluding _id
+      const taskStage = subDialogueIdsWithTaskStages.find((item) =>
+        item.subDialogueId.equals(_id)
+      ); // Find corresponding taskStage
+      return { ...rest, taskStage: taskStage ? taskStage.taskStage : null }; // Combine subDialogueItem with taskStage
+    });
+
+    // Now subDialoguesWithTaskStages contains all subDialogue items associated with their respective taskStages
+
+    // Respond with subDialoguesWithTaskStages
+    respondsSender(
+      subDialoguesWithTaskStages,
+      "User tasks retrieved successfully",
+      ResponseCode.successful,
+      res
+    );
+  } catch (error) {
+    // Handle errors
+    console.error("Error fetching user tasks:", error);
+    respondsSender(error.message, null, ResponseCode.internalServerError, res); // Pass internal server error status code
+  }
+});
+
+// Get a particular user dialogue undone tasks.
+const getUndoneTasks = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming you get the user ID from the request parameters
+
+    // Query userTasks to find undone tasks for the user
+    const userTasks = await userTask.find({ userId, taskStatus: "Undone" }); // Assuming taskStatus field indicates the status of the task
+
+    // If there are no undone tasks found for the user, return an appropriate response
+    if (userTasks.length === 0) {
+      return respondsSender(
+        null,
+        "No undone tasks found for the user",
+        ResponseCode.noData,
+        res
+      );
+    }
+
+    // Extract subDialogueIds and taskStages from userTasks
+    const subDialogueIdsWithTaskStages = userTasks.map((task) => ({
+      subDialogueId: task.subDialogueId,
+      taskStage: task.taskStage, // Assuming this is how you access the taskStage field
+    }));
+
+    // Query subDialogue using the extracted subDialogueIds
+    const subDialogues = await subDialogue.find({
+      _id: {
+        $in: subDialogueIdsWithTaskStages.map((item) => item.subDialogueId),
+      },
+    });
+
+    // Combine subDialogues with their corresponding taskStages
+    const subDialoguesWithTaskStages = subDialogues.map((subDialogueItem) => {
+      const { _id, ...rest } = subDialogueItem.toObject(); // Extract properties excluding _id
+      const taskStage = subDialogueIdsWithTaskStages.find((item) =>
+        item.subDialogueId.equals(_id)
+      ); // Find corresponding taskStage
+      return { ...rest, taskStage: taskStage ? taskStage.taskStage : null }; // Combine subDialogueItem with taskStage
+    });
+
+    // Now subDialoguesWithTaskStages contains all subDialogue items associated with their respective taskStages
+
+    // Respond with subDialoguesWithTaskStages
+    respondsSender(
+      subDialoguesWithTaskStages,
+      "Undone tasks retrieved successfully",
+      ResponseCode.successful,
+      res
+    );
+  } catch (error) {
+    // Handle errors
+    console.error("Error fetching user tasks:", error);
+
+    respondsSender(error.message, null, ResponseCode.internalServerError, res); // Pass internal server error status code
+  }
+});
+
+// Get a particular user dialogue done tasks.
+const getDoneTasks = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming you get the user ID from the request parameters
+
+    // Query userTasks to find done tasks for the user
+    const userTasks = await userTask.find({ userId, taskStatus: "done" }); // Assuming taskStatus field indicates the status of the task
+
+    // If there are no done tasks found for the user, return an appropriate response
+    if (userTasks.length === 0) {
+      return respondsSender(
+        null,
+        "No done-tasks found for the user",
+        ResponseCode.noData,
+        res
+      );
+    }
+
+    // Extract subDialogueIds and taskStages from userTasks
+    const subDialogueIdsWithTaskStages = userTasks.map((task) => ({
+      subDialogueId: task.subDialogueId,
+      taskStage: task.taskStage, // Assuming this is how you access the taskStage field
+    }));
+
+    // Query subDialogue using the extracted subDialogueIds
+    const subDialogues = await subDialogue.find({
+      _id: {
+        $in: subDialogueIdsWithTaskStages.map((item) => item.subDialogueId),
+      },
+    });
+
+    // Combine subDialogues with their corresponding taskStages
+    const subDialoguesWithTaskStages = subDialogues.map((subDialogueItem) => {
+      const { _id, ...rest } = subDialogueItem.toObject(); // Extract properties excluding _id
+      const taskStage = subDialogueIdsWithTaskStages.find((item) =>
+        item.subDialogueId.equals(_id)
+      ); // Find corresponding taskStage
+      return { ...rest, taskStage: taskStage ? taskStage.taskStage : null }; // Combine subDialogueItem with taskStage
+    });
+
+    // Now subDialoguesWithTaskStages contains all subDialogue items associated with their respective taskStages
+
+    // Respond with subDialoguesWithTaskStages
+    respondsSender(
+      subDialoguesWithTaskStages,
+      "Done tasks retrieved successfully",
+      ResponseCode.successful,
+      res
+    );
+  } catch (error) {
+    // Handle errors
+    console.error("Error fetching user tasks:", error);
+    respondsSender(error.message, null, ResponseCode.internalServerError, res); // Pass internal server error status code
+  }
+});
+
+// Get a particular user dialogue skipped tasks.
+const getSkippedTasks = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming you get the user ID from the request parameters
+
+    // Query userTasks to find skipped tasks for the user
+    const userTasks = await userTask.find({ userId, taskStatus: "Skipped" }); // Assuming taskStatus field indicates the status of the task
+
+    // If there are no skipped tasks found for the user, return an appropriate response
+    if (userTasks.length === 0) {
+      return respondsSender(
+        null,
+        "No Skipped tasks found for the user",
+        ResponseCode.noData,
+        res
+      );
+    }
+
+    // Extract subDialogueIds and taskStages from userTasks
+    const subDialogueIdsWithTaskStages = userTasks.map((task) => ({
+      subDialogueId: task.subDialogueId,
+      taskStage: task.taskStage, // Assuming this is how you access the taskStage field
+    }));
+
+    // Query subDialogue using the extracted subDialogueIds
+    const subDialogues = await subDialogue.find({
+      _id: {
+        $in: subDialogueIdsWithTaskStages.map((item) => item.subDialogueId),
+      },
+    });
+
+    // Combine subDialogues with their corresponding taskStages
+    const subDialoguesWithTaskStages = subDialogues.map((subDialogueItem) => {
+      const { _id, ...rest } = subDialogueItem.toObject(); // Extract properties excluding _id
+      const taskStage = subDialogueIdsWithTaskStages.find((item) =>
+        item.subDialogueId.equals(_id)
+      ); // Find corresponding taskStage
+      return { ...rest, taskStage: taskStage ? taskStage.taskStage : null }; // Combine subDialogueItem with taskStage
+    });
+
+    // Now subDialoguesWithTaskStages contains all subDialogue items associated with their respective taskStages
+
+    // Respond with subDialoguesWithTaskStages
+    respondsSender(
+      subDialoguesWithTaskStages,
+      "Skipped tasks retrieved successfully",
+      ResponseCode.successful,
+      res
+    );
+  } catch (error) {
+    // Handle errors
+    console.error("Error fetching user tasks:", error);
+    respondsSender(error.message, null, ResponseCode.internalServerError, res); // Pass internal server error status code
+  }
+});
+
 module.exports = {
   createDialogueWithDoc,
   getDialogue,
+  getUserTasks,
+  getUndoneTasks,
+  getDoneTasks,
+  getSkippedTasks,
 };

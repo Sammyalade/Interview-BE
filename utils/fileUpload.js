@@ -10,21 +10,25 @@ const storage = multer.diskStorage({
   },
 });
 
-// Specify file format that can be saved
-function fileFilter(req, file, cb) {
-  const allowedCsvTypes = ["text/csv", "application/vnd.ms-excel"]; // Add more CSV mime types if needed
+// Specify allowed file types
+const allowedFileTypes = [
+  "text/csv",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.google-apps.document"
+];
 
-  
-  if (allowedCsvTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else if (allowedCsvTypes.includes(file.mimetype)) {
+// File Filter Function
+function fileFilter(req, file, cb) {
+  if (allowedFileTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
     cb(null, false);
   }
 }
 
-const upload = multer({ storage: storage, fileFilter });
+// Multer Configuration
+const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 // File Size Formatter
 const fileSizeFormatter = (bytes, decimal) => {

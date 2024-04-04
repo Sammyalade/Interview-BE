@@ -1,8 +1,11 @@
 const asynchandler = require("express-async-handler");
 const User = require("../models/userModel");
+const daStatus = require("../models/dAssignmentStatus");
+const Token = require("../models/tokenModel");
+const subDialogue = require("../models/subDialogueModel");
+const userTask = require("../models/userTaskModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const Token = require("../models/tokenModel");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require('../middleWare/respondsHandler');
@@ -28,7 +31,6 @@ function generateRandomString(length) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       result += characters.charAt(randomIndex);
     }
-  
     return result;
 }
 
@@ -63,7 +65,6 @@ const registerUser = asynchandler(async (req, res) => {
       // Validation check if user email already exists  
       const userExists = await User.findOne({ email:lowerEmail });
       if (userExists) {
-        console.log('User already exists');
         respondsSender(null, "User already registered", ResponseCode.dataDuplication, res); 
        
       }
@@ -89,7 +90,7 @@ const registerUser = asynchandler(async (req, res) => {
       // Construct Reset URL
       const verifyUrl = `${process.env.FRONTEND_URL}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
   
-      // Reset Email
+      // Reset Email.
       const message = `
         <h2> Hello ${user.firstname},</h2>
         <p> Please use the URL below to verify your registration </p>
@@ -106,7 +107,8 @@ const registerUser = asynchandler(async (req, res) => {
       console.log(verifyUrl);
       const response={
         message:"Verification Email Sent",
-        url:verifyUrl
+        url:verifyUrl,
+        mail:message
         }
 
     //res.status(200).json(response);
@@ -191,6 +193,77 @@ const loginUser = asynchandler(async(req,res) => {
                     },
                  token:token
               }
+
+            // Check Tasks
+            const foundDaStatus = await daStatus.findOne({userId: user._id, status: true}) 
+           
+        if (!foundDaStatus) {
+                try {
+                    // Retrieve all subDialogues from the database where assignmentStatus is false
+                 const allSubDialogues = await subDialogue.find({ assignmentStatus: false });
+
+
+                    // Initialize an array to store the selected subDialogues
+                    const selectedSubDialogues = [];
+
+                    // Select up to 5 
+                    for (let i = 0;  i < allSubDialogues.length; i += 2) {
+                        selectedSubDialogues.push(allSubDialogues[i]);
+                    }
+
+                    // Initialize a variable to keep track of the alternating assignment status
+                    let assign = true;
+
+                    // Iterate over the selected subDialogues
+                    for (let i = 0; i < selectedSubDialogues.length; i++) {
+                        const subDialogueItem = selectedSubDialogues[i];
+
+                        // Create a new user task
+                        const newUserTask = new userTask({
+                            taskStatus: "Undone",
+                            subDialogueId: subDialogueItem._id,
+                            userId: user._id, // Replace with the actual user ID
+                            type: "dialogue"
+                        });
+
+                        // Assign task or skip based on the alternating assign status
+                        if (assign) {
+                            await newUserTask.save();
+                               // Update the assignmentStatus of the subDialogueItem
+                                await subDialogue.findByIdAndUpdate(subDialogueItem._id, { assignmentStatus: true });
+
+                        }
+
+                        // Toggle the assignment status for the next iteration
+                        assign = !assign;
+                    }
+                    //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
+
+                      const existingTask = await daStatus.findOne({userId: user._id}) 
+                      if (existingTask) {
+                            // If the user already has a task assigned, update its status to true
+                            existingTask.status = true;
+                            await existingTask.save();
+                        } else {
+                            // If the user does not have a task assigned, insert a new document
+                            const newTask = new daStatus({
+                                userId: user._id,
+                                status: true
+                                
+                            });
+                            await newTask.save();
+                        }
+
+
+                    // respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res); 
+                } catch (error) {
+                    
+                    // respondsSender(error, "Error creating user tasks", ResponseCode.internalServerError, res); 
+                }
+            } else {
+                // respondsSender(null, "User tasks already exist", ResponseCode.badRequest, res); 
+            }
+
               respondsSender(data, "Login successful", ResponseCode.successful, res); 
 
             }
@@ -445,6 +518,12 @@ const resetPassword = asynchandler( async (req, res) =>{
         respondsSender(null, "Password Reset Successful, Please Login", ResponseCode.successful, res);
 });
 
+// Get Accent of User
+const getAccent = asynchandler(async (req, res) => {
+    const allAccents = ["Yoruba", "Hausa", "Igbo"];
+    respondsSender(allAccents, "Successful", ResponseCode.successful, res)
+});
+
  
 module.exports = {
     registerUser,
@@ -456,5 +535,6 @@ module.exports = {
     changePassword,
     forgotPassword,
     resetPassword,
-    verifyUser
+    verifyUser,
+    getAccent
 }  

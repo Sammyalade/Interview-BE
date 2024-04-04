@@ -200,14 +200,14 @@ const loginUser = asynchandler(async(req,res) => {
         if (!foundDaStatus) {
                 try {
                     // Retrieve all subDialogues from the database where assignmentStatus is false
-                    const allSubDialogues = await subDialogue.find({ assignmentStatus: false });
+                 const allSubDialogues = await subDialogue.find({ assignmentStatus: false });
 
-   respondsSender(allSubDialogues, "User tasks already exist", ResponseCode.successful, res); 
+
                     // Initialize an array to store the selected subDialogues
                     const selectedSubDialogues = [];
 
-                    // Select up to 5 subDialogues
-                    for (let i = 0; i < 5 && i < allSubDialogues.length; i++) {
+                    // Select up to 5 
+                    for (let i = 0;  i < allSubDialogues.length; i += 2) {
                         selectedSubDialogues.push(allSubDialogues[i]);
                     }
 
@@ -229,20 +229,39 @@ const loginUser = asynchandler(async(req,res) => {
                         // Assign task or skip based on the alternating assign status
                         if (assign) {
                             await newUserTask.save();
+                               // Update the assignmentStatus of the subDialogueItem
+                                await subDialogue.findByIdAndUpdate(subDialogueItem._id, { assignmentStatus: true });
+
                         }
 
                         // Toggle the assignment status for the next iteration
                         assign = !assign;
                     }
+                    //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
 
-                    console.log("User tasks created successfully!");
-                    respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res); 
+                      const existingTask = await daStatus.findOne({userId: user._id}) 
+                      if (existingTask) {
+                            // If the user already has a task assigned, update its status to true
+                            existingTask.status = true;
+                            await existingTask.save();
+                        } else {
+                            // If the user does not have a task assigned, insert a new document
+                            const newTask = new daStatus({
+                                userId: user._id,
+                                status: true
+                                
+                            });
+                            await newTask.save();
+                        }
+
+
+                    // respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res); 
                 } catch (error) {
-                    console.error("Error creating user tasks:", error);
-                    respondsSender(null, "Error creating user tasks", ResponseCode.internalServerError, res); 
+                    
+                    // respondsSender(error, "Error creating user tasks", ResponseCode.internalServerError, res); 
                 }
             } else {
-                respondsSender(null, "User tasks already exist", ResponseCode.badRequest, res); 
+                // respondsSender(null, "User tasks already exist", ResponseCode.badRequest, res); 
             }
 
               respondsSender(data, "Login successful", ResponseCode.successful, res); 

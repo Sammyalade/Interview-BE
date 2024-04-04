@@ -8,6 +8,12 @@ const userTaskSchema = mongoose.Schema({
         enum: ["Done", "Skipped", "Undone"],
 
     },
+      taskStage: {
+        type: Number,
+        required: true,
+        default:1,
+
+    },
 
     subDialogueId: {
         type: mongoose.Schema.Types.ObjectId,

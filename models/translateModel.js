@@ -34,4 +34,8 @@ const translateSchema = mongoose.Schema({
         required: [true, "id not included"],
         ref: "user"
     }
-})
+});
+
+const translate = mongoose.model("translate", translateSchema);
+
+module.exports = translate

@@ -9,7 +9,7 @@ const recordSchema = mongoose.Schema({
 
     filePath: {
         type: String,
-        required: false,
+        required: true,
         unique: true,
         maxLength: 2048
     },

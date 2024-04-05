@@ -199,26 +199,35 @@ const loginUser = asynchandler(async(req,res) => {
             // respondsSender(foundDaStatus, "User tasks created successfully!", ResponseCode.successful, res); 
            
         if (!foundDaStatus) {
+                const numToAssign=10;
                 try {
                     // Retrieve all subDialogues from the database where assignmentStatus is false
-                    const allSubDialogues = await subDialogue.find({ assignmentStatus: false }).limit(20);
+                    const allSubDialogues = await subDialogue.find({ assignmentStatus: false }).limit(numToAssign*2);
 
-                    // respondsSender(allSubDialogues, "User tasks created successfully!", ResponseCode.successful, res); 
-
-
+                    
+                    //check number of retrieved subDialogu
+                    const numOfAllSubDialog=allSubDialogues.length;
                     // Initialize an array to store the selected subDialogues
                     const selectedSubDialogues = [];
 
-                    // Select up to 5 
-                    for (let i = 1;  i <= allSubDialogues.length; i += 2) {
-                        selectedSubDialogues.push(allSubDialogues[i]);
+                    //share dialogue evenly if all dialogus is more than what is to be share else dont evenly share
+                    if (allSubDialogues > numToAssign) {
+                        // Select up to 5 
+                        for (let i = 1;  i <= allSubDialogues.length; i += 2) {
+                            selectedSubDialogues.push(allSubDialogues[i]);
+                        }
                     }
+                    else{
+                        for (let i = 1;  i <= allSubDialogues.length; i++) {
+                            selectedSubDialogues.push(allSubDialogues[i]);
+                        }
+                    }
+                   
 
                     // Initialize a variable to keep track of the alternating assignment status
                     let assign = true;
-
                     // Iterate over the selected subDialogues
-                    for (let i = 0; i <= selectedSubDialogues.length; i++) {
+                    for (let i = 0; i < selectedSubDialogues.length; i++) {
                         const subDialogueItem = selectedSubDialogues[i];
 
                         // Create a new user task
@@ -228,7 +237,7 @@ const loginUser = asynchandler(async(req,res) => {
                             userId: user._id, // Replace with the actual user ID
                             type: "dialogue"
                         });
-
+                       
                         // Assign task or skip based on the alternating assign status
                         if (assign) {
                             await newUserTask.save();
@@ -237,11 +246,10 @@ const loginUser = asynchandler(async(req,res) => {
 
                         }
 
-                        // Toggle the assignment status for the next iteration
-                        assign = !assign;
+                       
                     }
+                    
                     //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
-
                       const existingTask = await daStatus.findOne({userId: user._id}) 
                       if (existingTask) {
                             // If the user already has a task assigned, update its status to true

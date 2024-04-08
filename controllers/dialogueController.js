@@ -29,9 +29,7 @@ const createDialogueWithDoc = asyncHandler(async (req, res) => {
     const { value } = await mammoth.extractRawText({ path: filePath });
     const docxContent = value.trim(); // Extracted text content
 
-    console.log(docxContent);
-    //create algorithm to convert extracted doc into object
-    respondsSender(docxContent, "File not found", ResponseCode.badRequest, res);
+    //create algorithm to convert extracted doc into object    
     // Split the text into individual dialogues
     const dialogues = docxContent.split("\n\n\n\n");
 
@@ -64,6 +62,7 @@ const createDialogueWithDoc = asyncHandler(async (req, res) => {
       // Push the formatted dialogue object to the array
       formattedDialogues.push(formattedDialogue);
     });
+
 
     // Clean up created array
     const filteredArray = formattedDialogues.map((obj) => {
@@ -116,17 +115,24 @@ const createDialogueWithDoc = asyncHandler(async (req, res) => {
           });
 
           // Save the dialogue instance to the database
-          await dialogue.save();
-
+           await dialogue.save();
+ 
           // Save subDialogue instances associated with the dialogue
           for (const text of dialogueTexts) {
+
+          const sentence = text;
+          const delimiter = ":"; // space character
+
+          const wordsArray = sentence.split(delimiter);
+
             const subDialogueItem = new subDialogue({
-              text,
+              text:wordsArray[1].trim(),
+              identifier:wordsArray[0],
               dialogueId: dialogue._id, // Reference to the dialogue
               assignmentStatus: false,
               skippedStatus: false,
             });
-            await subDialogueItem.save();
+             await subDialogueItem.save();
           }
         } else {
           console.log(
@@ -134,7 +140,6 @@ const createDialogueWithDoc = asyncHandler(async (req, res) => {
           );
         }
       }
-      console.log("Data saved successfully!");
       respondsSender(
         filteredArray,
         "File uploaded successfully",

@@ -6,6 +6,11 @@ const subDialogueSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    identifier: {
+        type: String,
+        required: false
+    },
+
 
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,

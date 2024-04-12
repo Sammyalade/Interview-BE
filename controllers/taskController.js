@@ -65,11 +65,11 @@ const saveRecording = asyncHandler(async (req, res) => {
 
 const saveTranslate = asyncHandler(async (req, res) => {
   // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, translateText) and validate
-    const { userId, subDialogueId, dialogueId, taskStage, taskId, translateText } = req.body;
-    if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !translateText) {
+    const { userId, subDialogueId, dialogueId, taskStage, taskId, translateText, language } = req.body;
+    if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !translateText || !language) {
         respondsSender(
             null,
-            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, and translateText are all included in the body",
+            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, language and translateText are all included in the body",
             ResponseCode.badRequest,
             res
         );
@@ -79,7 +79,7 @@ const saveTranslate = asyncHandler(async (req, res) => {
     try {
         // Save the recording data
         const Translation = await Translate.create({
-            userId, subDialogueId, dialogueId, translateText
+            userId, subDialogueId, dialogueId, translateText, language
         });
 
         // Check if the recording was created successfully
@@ -107,11 +107,11 @@ const saveTranslate = asyncHandler(async (req, res) => {
 });
 const saveSpeak = asyncHandler(async (req, res) => {
    // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, filePath) and validate
-    const { userId, subDialogueId, dialogueId, taskStage, taskId, filePath } = req.body;
-    if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !filePath) {
+    const { userId, subDialogueId, dialogueId, taskStage, taskId, filePath , language } = req.body;
+    if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !filePath || !language) {
         respondsSender(
             null,
-            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, and filePath are all included in the body",
+            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, language and filePath are all included in the body",
             ResponseCode.badRequest,
             res
         );
@@ -121,7 +121,7 @@ const saveSpeak = asyncHandler(async (req, res) => {
     try {
         // Save the recording data
         const Speaking = await Speak.create({
-            userId, subDialogueId, dialogueId, filePath
+            userId, subDialogueId, dialogueId, filePath, language
         });
 
         // Check if the recording was created successfully

@@ -35,6 +35,6 @@ const subDialogueSchema = mongoose.Schema({
     }
 });
 
-const subDialogue = mongoose.model("subDialogue", subDialogueSchema);
+const SubDialogue = mongoose.model("SubDialogue", subDialogueSchema);
 
-module.exports = subDialogue;
+module.exports = SubDialogue;

@@ -13,5 +13,5 @@ status: {
 },},
 
 {timestamps: true,})
-const daStatus = mongoose.model("daStatus", daStatusSchema)
-module.exports = daStatus
+const DAstatus = mongoose.model("DAstatus", daStatusSchema)
+module.exports = DAstatus

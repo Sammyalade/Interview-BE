@@ -9,7 +9,7 @@ router.post("/record", saveRecording);
 router.post("/translate", saveTranslate); 
 router.post("/speak", saveSpeak); 
 router.post("/skip", skipTask); 
-router.get("/meter",getMeter)
+router.get("/meter/:userId",getMeter)
 
 module.exports = router
 

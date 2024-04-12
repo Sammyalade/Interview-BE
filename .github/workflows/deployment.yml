@@ -47,7 +47,7 @@ jobs:
             --exclude='utils/test.js' \
             ./ okiki_awarri_com@${{ secrets.GCP_VM_EXTERNAL_IP }}:~/app
             
-          # SSH into the VM and run deployment commands
+          # SSH into the VM and run deployment commandsok
           ssh okiki_awarri_com@${{ secrets.GCP_VM_EXTERNAL_IP }} << 'ENDSSH'
           cd ~/app
           npm install --production

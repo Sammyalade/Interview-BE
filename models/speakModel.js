@@ -25,6 +25,10 @@ const speakSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included"],
         ref: "user"
+    },
+      language:{
+        require:true,
+        type:String
     }
 });
 

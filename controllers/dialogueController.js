@@ -356,9 +356,10 @@ const getSingleTask = asyncHandler(async (req, res) => {
     // Prepare the response data
     const responseData = {
       text: subDialogueResult.text,
+      subDialogueId:subDialogueResult._id,
       dialogueId: subDialogueResult.dialogueId, // Assuming you want to access dialogueId field
       taskId: result._id,  
-      taskLevel: result.taskStage
+      taskStage: result.taskStage
     };
 
     // Respond with the prepared data

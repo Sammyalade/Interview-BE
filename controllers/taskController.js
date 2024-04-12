@@ -69,7 +69,7 @@ const saveTranslate = asyncHandler(async (req, res) => {
     if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !translateText || !language) {
         respondsSender(
             null,
-            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, language and translateText are all included in the body",
+            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, language and translateText are all included in the body", 
             ResponseCode.badRequest,
             res
         );

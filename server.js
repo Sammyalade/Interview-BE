@@ -47,23 +47,55 @@ app.use("/api/dialogue", dialogueRoute);
 
 
 
-//Routes
+
+// Routes
 app.get("/", (req, res) => {
   res.send("Home Page");
 });
-//Error MiddleWare
+
+// Error Middleware
 app.use(errorHandler);
-//connect to DB and start Server
+
+// Start Server
 const PORT = process.env.PORT || 4000;
-// mongoose.set('debug', true);
+app.listen(PORT, () => {
+  console.log(`Server running on Port ${PORT}`);
+});
+
+// MongoDB connection code is commented out
+/*
+mongoose.set('debug', true);
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
     console.log('DB connected successfully');
-    app.listen(PORT, () => {
-      console.log(`Server running on Port ${PORT}`);
-    });
   })
   .catch((error) => {
     console.log(error);
   });
+*/
+
+
+
+
+
+// //Routes
+// app.get("/", (req, res) => {
+//   res.send("Home Page");
+// });
+// //Error MiddleWare
+// app.use(errorHandler);
+// //connect to DB and start Server
+// const PORT = process.env.PORT || 4000;
+// // mongoose.set('debug', true);
+// mongoose
+//   .connect(process.env.MONGO_URI)
+//   .then(() => {
+//     console.log('DB connected successfully');
+//     app.listen(PORT, () => {
+//       console.log(`Server running on Port ${PORT}`);
+//     });
+//   })
+//   .catch((error) => {
+//     console.log(error);
+//   });

@@ -1,3 +1,63 @@
+# name: Deploy to GCP VM
+
+# on:
+#   push:
+#     branches:
+#       - main  # Set this to the branch you want to deploy from
+
+# jobs:
+#   deploy:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#       # Step 1: Check out the repository
+#       - name: Checkout code
+#         uses: actions/checkout@v2
+
+#       # Step 2: Set up Google Cloud SDK
+#       - name: Set up Google Cloud
+#          uses: google-github-actions/setup-gcloud@v0.2.0
+#         with:
+#           project_id: ${{ secrets.GCP_PROJECT_ID }}
+#           service_account_key: ${{ secrets.GCP_SA_KEY }}
+#           export_default_credentials: true
+
+#       # Step 3: Install SSH key on the runner
+#       - name: Install SSH key
+#         run: |
+#           SSH_DIR="$HOME/.ssh"
+#           mkdir -p "$SSH_DIR"
+#           echo "${{ secrets.GCP_SSH_PRIVATE_KEY }}" > "$SSH_DIR/id_rsa"
+#           chmod 700 "$SSH_DIR"
+#           chmod 600 "$SSH_DIR/id_rsa"
+#           ssh-keyscan -H "${{ secrets.GCP_VM_EXTERNAL_IP }}" >> "$SSH_DIR/known_hosts"
+
+#       # Step 4: Deploy application to VM
+#       - name: Deploy to GCP
+#         run: |
+#           # Create the application directory on the VM
+#           ssh okiki_awarri_com@${{ secrets.GCP_VM_EXTERNAL_IP }} "mkdir -p ~/app"
+
+#           # Sync repository to the VM
+#           rsync -avz --delete \
+#             --exclude='.git/' \
+#             --exclude='node_modules/' \
+#             --exclude='uploads/' \
+#             --exclude='.github/' \
+#             --exclude='utils/test.js' \
+#             ./ okiki_awarri_com@${{ secrets.GCP_VM_EXTERNAL_IP }}:~/app
+            
+#           # SSH into the VM and run deployment commands
+#           ssh okiki_awarri_com@${{ secrets.GCP_VM_EXTERNAL_IP }} << 'ENDSSH'
+#           cd ~/app
+#           npm install --production
+#           # Build the project if you have a build step
+#           # npm run build
+#           # Restart the application using pm2
+#           pm2 restart all
+#           # Or if the application is not running, start it
+#           # pm2 start server.js
+#           ENDSSH
 name: Deploy to GCP VM
 
 on:
@@ -49,12 +109,19 @@ jobs:
             
           # SSH into the VM and run deployment commands
           ssh okiki_awarri_com@${{ secrets.GCP_VM_EXTERNAL_IP }} << 'ENDSSH'
+          # Load nvm and install/use the specific Node.js version
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+          nvm use 21.7.3
+
+          # Navigate to the app directory and run npm install
           cd ~/app
           npm install --production
-          # Build the project if you have a build step
+          
+          # If you have a build step, uncomment the next line
           # npm run build
-          # Restart the application using pm2
-          pm2 restart all
-          # Or if the application is not running, start it
-          # pm2 start server.js
+          
+          # Use pm2 to restart the application
+          pm2 restart all || pm2 start server.js --name "BACKEND"
           ENDSSH

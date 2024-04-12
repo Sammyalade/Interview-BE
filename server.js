@@ -58,11 +58,11 @@ app.get("/", (req, res) => {
 // Error Middleware
 app.use(errorHandler);
 
-// Start Server
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`Server running on Port ${PORT}`);
-});
+// Start Server - okiki's code
+// const PORT = process.env.PORT || 4000;
+// app.listen(PORT, () => {
+//   console.log(`Server running on Port ${PORT}`);
+// });
 
 // MongoDB connection code is commented out
 /*

@@ -176,6 +176,8 @@ const getMeter = asyncHandler(async(req, res) => {
     totalTasks,
     doneTasks
   }
+       respondsSender(result, "Successful", ResponseCode.successful, res);
+
 });
 module.exports = {
 

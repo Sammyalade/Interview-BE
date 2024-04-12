@@ -128,25 +128,23 @@ const saveSpeak = asyncHandler(async (req, res) => {
         if (Speaking) {
             // Update user task stage
             const newTaskStage = taskStage + 1;
-            const userTask = await UserTask.findById(taskId);
+            const fetchUserTask = await UserTask.findById(taskId);
             
-            if (userTask) {
+            if (fetchUserTask) {
                 // Update the task status done
-                userTask.taskStatus = "Done";
-                await userTask.save();
-                //if update done, fetch and update task meter
-                const userTask = await UserTask.findById(taskId);
-
-                respondsSender(null, "Recording successful", ResponseCode.successful, res);
+                fetchUserTask.taskStatus = "Done";
+                fetchUserTask.taskStage = newTaskStage;
+                await fetchUserTask.save();
+                respondsSender(fetchUserTask, "Speaking successful", ResponseCode.successful, res);
             } else {
                 respondsSender(null, "Task stage not found", ResponseCode.successful, res);
             }
         } else {
-            respondsSender(null, "Error creating recording", ResponseCode.internalServerError, res);
+            respondsSender(null, "Error creating Speaking", ResponseCode.internalServerError, res);
         }
     } catch (error) {
         // An error occurred during recording creation or task update
-        respondsSender(null, "Unknown error, please check your code", ResponseCode.internalServerError, res);
+        respondsSender(null, "Unknown error, please check your code"+error, ResponseCode.internalServerError, res);
     }
 });
 
@@ -171,7 +169,7 @@ const getMeter = asyncHandler(async(req, res) => {
   // Fetch number of all tasks assigned to user.
   const totalTasks = await UserTask.countDocuments({ userId:userId });
   // Fetch number of all done user tasks.
-  const doneTasks = await UserTask.countDocuments({ userId:userId, status: "Done" });
+  const doneTasks = await UserTask.countDocuments({ userId:userId, taskStatus: "Done" });
   const result = {
     totalTasks,
     doneTasks

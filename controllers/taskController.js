@@ -165,19 +165,19 @@ const skipTask = asyncHandler(async (req, res) => {
 });
 
 // Task Meter: number of done tasks over number of total tasks
-const getTaskMeter = asyncHandler(async(req, res) => {
+const getMeter = asyncHandler(async(req, res) => {
   // Collect userId
   const userId = req.params.userId;
   // Fetch number of all tasks assigned to user.
-  const totalTasks = await userTask.countDocuments({ userId:userId });
+  const totalTasks = await UserTask.countDocuments({ userId:userId });
   // Fetch number of all done user tasks.
-  const doneTasks = await userTask.countDocuments({ userId:userId, status: "Done" });
+  const doneTasks = await UserTask.countDocuments({ userId:userId, status: "Done" });
   const result = {
     totalTasks,
     doneTasks
   }
-    
+});
 module.exports = {
 
- saveRecording, saveTranslate, saveSpeak, skipTask, test, taskMeter
+ saveRecording, saveTranslate, saveSpeak, skipTask, test, getMeter
 }

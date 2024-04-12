@@ -149,18 +149,43 @@ const saveSpeak = asyncHandler(async (req, res) => {
 });
 
 const skipTask = asyncHandler(async (req, res) => {
-    //get data sent by user (subdialogueId, taskstage, userId, dialogueId, filePath)
+    // Get data sent by user (userId, subDialogueId, taskId) and validate
+    const { userId, subDialogueId, taskId } = req.body;
+    if (!userId || !subDialogueId || !taskId) {
+        respondsSender(
+            null,
+            "Please ensure that userId, subDialogueId, and taskId are all included in the body",
+            ResponseCode.badRequest,
+            res
+        );
+        return; // Return to prevent further execution
+    }
 
-    //update user task status to skipped
+    try {
+        // Update subDialogue status to skipped
+        const fetchUserSubDialogue = await subDialogue.findById(subDialogueId);
+        if (fetchUserSubDialogue) {
+            fetchUserSubDialogue.skippedStatus = true;
+            await fetchUserSubDialogue.save();
+        } else {
+            respondsSender(null, "SubDialogue not found", ResponseCode.badRequest, res);
+        }
 
-    //return responds
-  respondsSender(
-    null,
-    "Hello Dialogue Route and controller is working",
-    ResponseCode.successful,
-    res
-  );
+        // Update user task status to "Skipped"
+        const fetchUserTask = await UserTask.findById(taskId);
+        if (fetchUserTask) {
+            fetchUserTask.taskStatus = "Skipped";
+            await fetchUserTask.save();
+            respondsSender(fetchUserTask, "Task skipped successfully", ResponseCode.successful, res);
+        } else {
+            respondsSender(null, "Task not found", ResponseCode.badRequest, res);
+        }
+    } catch (error) {
+        // An error occurred during the process
+        respondsSender(null, "Unknown error: " + error.message, ResponseCode.internalServerError, res);
+    }
 });
+
 
 // Task Meter: number of done tasks over number of total tasks
 const getMeter = asyncHandler(async(req, res) => {

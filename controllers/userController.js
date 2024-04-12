@@ -196,7 +196,7 @@ const loginUser = asynchandler(async(req,res) => {
 
             // Check Tasks
             const foundDaStatus = await daStatus.findOne({userId: user._id, status: true})
-            // respondsSender(foundDaStatus, "User tasks created successfully!", ResponseCode.successful, res); 
+            
            
         if (!foundDaStatus) {
                 const numToAssign=10;
@@ -211,8 +211,8 @@ const loginUser = asynchandler(async(req,res) => {
                     const selectedSubDialogues = [];
 
                     //share dialogue evenly if all dialogus is more than what is to be share else dont evenly share
-                    if (allSubDialogues > numToAssign) {
-                        // Select up to 5 
+                    if (numOfAllSubDialog > numToAssign) {
+                        
                         for (let i = 1;  i <= allSubDialogues.length; i += 2) {
                             selectedSubDialogues.push(allSubDialogues[i]);
                         }

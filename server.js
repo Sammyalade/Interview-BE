@@ -9,6 +9,7 @@ const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
 const feedbackRoute = require("./routes/feedbackRoute");
+const taskRoute = require("./routes/taskRoute");
 const errorHandler = require("./middleWare/errorMiddleware");
 const cookieParser = require("cookie-parser");
 const path = require("path");
@@ -44,6 +45,7 @@ app.use("/api/word", wordBankRoute);
 app.use("/api/contactus", contactRoute);
 app.use("/api/feedback", feedbackRoute);
 app.use("/api/dialogue", dialogueRoute);
+app.use("/api/task", taskRoute);
 
 
 

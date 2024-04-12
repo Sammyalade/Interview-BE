@@ -1,12 +1,7 @@
 const mongoose = require('mongoose');
 
 const recordSchema = mongoose.Schema({
-    id: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included "],
-        ref: "user"
-    },
-
+   
     filePath: {
         type: String,
         required: true,
@@ -24,12 +19,6 @@ const recordSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included"],
         ref: "subDialogue"
-    },
-
-    status: {
-        type: Boolean,
-        required: true,
-        default: false
     },
 
     userId: {

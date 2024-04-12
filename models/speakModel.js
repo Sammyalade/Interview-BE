@@ -1,9 +1,12 @@
 const mongoose = require('mongoose');
 
-const translateSchema = mongoose.Schema({
-    
-    translateText: {
-        type: String
+const speakSchema = mongoose.Schema({
+   
+    filePath: {
+        type: String,
+        required: true,
+        unique: true,
+        maxLength: 2048
     },
 
     dialogueId: {
@@ -25,6 +28,6 @@ const translateSchema = mongoose.Schema({
     }
 });
 
-const Translate = mongoose.model("Translate", translateSchema);
+const Speak = mongoose.model("Speak", speakSchema);
 
-module.exports = Translate
+module.exports = Speak

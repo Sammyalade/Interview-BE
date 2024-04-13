@@ -22,14 +22,11 @@ jobs:
           service_account_key: ${{ secrets.GCP_SA_KEY }}
           export_default_credentials: true
 
-      # Step 3: Build and push the Docker image to Google Container Registry
+      # Step 3: Build and push Docker image
       - name: Build and push Docker image
         run: |
-          # Authenticate with GCR
-          echo ${{ secrets.GCP_SA_KEY }} | gcloud auth activate-service-account --key-file=-
-          # Build the Docker image
+          gcloud auth configure-docker
           docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:$GITHUB_SHA .
-          # Push the image to GCR
           docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:$GITHUB_SHA
 
       # Step 4: Deploy to Google Cloud Run
@@ -40,8 +37,7 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
-            --set-env-vars \
-              CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},\
+            --set-env-vars CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},\
               EMAIL_HOST=${{ secrets.EMAIL_HOST }},\
               EMAIL_PASS=${{ secrets.EMAIL_PASS }},\
               EMAIL_USER=${{ secrets.EMAIL_USER }},\
@@ -50,6 +46,16 @@ jobs:
               MONGO_URI=${{ secrets.MONGO_URI }},\
               NODE_ENV=${{ secrets.NODE_ENV }} \
             --project ${{ secrets.GCP_PROJECT_ID }}
+
+
+
+
+
+
+
+
+
+
 
 
 

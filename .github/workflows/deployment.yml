@@ -37,14 +37,8 @@ jobs:
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
-            --set-env-vars CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},EMAIL_HOST=${{ secrets.EMAIL_HOST }},EMAIL_PASS=${{ secrets.EMAIL_PASS }},EMAIL_USER=${{ secrets.EMAIL_USER }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},MONGO_URI=${{ secrets.MONGO_URI }},NODE_ENV=${{ secrets.NODE_ENV }} \
+            --set-env-vars CLOUDINARY_URL="${{ secrets.CLOUDINARY_URL }}",EMAIL_HOST="${{ secrets.EMAIL_HOST }}",EMAIL_PASS="${{ secrets.EMAIL_PASS }}",EMAIL_USER="${{ secrets.EMAIL_USER }}",FRONTEND_URL="${{ secrets.FRONTEND_URL }}",JWT_SECRET="${{ secrets.JWT_SECRET }}",MONGO_URI="${{ secrets.MONGO_URI }}",NODE_ENV="${{ secrets.NODE_ENV }}" \
             --project ${{ secrets.GCP_PROJECT_ID }}
-
-
-
-
-
-
 
 
 

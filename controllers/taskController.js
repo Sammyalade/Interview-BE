@@ -57,7 +57,7 @@ const saveRecording = asyncHandler(async (req, res) => {
         }
     } catch (error) {
         // An error occurred during recording creation or task update
-        respondsSender(null, "Unknown error, please check your code", ResponseCode.internalServerError, res);
+        respondsSender(null, "Unknown error, "+error, ResponseCode.internalServerError, res);
     }
 });
 

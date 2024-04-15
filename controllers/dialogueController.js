@@ -331,8 +331,8 @@ const getSingleTask = asyncHandler(async (req, res) => {
     if (!result) {
       return respondsSender(
         null,
-        "No undone tasks found for the user",
-        ResponseCode.noData,
+        "No undone tasks found for the user all task has been done/skipped",
+        ResponseCode.requestUnavailable,
         res
       );
     }

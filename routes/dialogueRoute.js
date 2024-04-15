@@ -14,11 +14,11 @@ const protect = require("../middleWare/authMiddleware");
 const { upload } = require("../utils/fileUpload");
 
 router.get("/", protect, getDialogue);
-router.get("/getusertasks/:userId", getUserTasks);
-router.get("/getsingletask/:userId", getSingleTask);
-router.get("/getskippedtasks/:userId", getSkippedTasks);
-router.get("/getundonetasks/:userId", getUndoneTasks);
-router.get("/getdonetasks/:userId", getDoneTasks);
+router.get("/getusertasks/:userId",protect, getUserTasks);
+router.get("/getsingletask/:userId",protect, getSingleTask);
+router.get("/getskippedtasks/:userId",protect, getSkippedTasks);
+router.get("/getundonetasks/:userId",protect, getUndoneTasks);
+router.get("/getdonetasks/:userId",protect, getDoneTasks);
 router.post("/generate", upload.single("dialogueDoc"), createDialogueWithDoc); //route for csv upload
 
 /*

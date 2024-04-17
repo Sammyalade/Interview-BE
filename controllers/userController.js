@@ -42,8 +42,8 @@ const registerUser = asynchandler(async (req, res) => {
       gender,
       dateOfBirth,
       accent,
-      tribe,
-      ethnicity,
+      //   tribe,
+      //   ethnicity,
       consent,
       password,
     } = req.body;
@@ -56,8 +56,8 @@ const registerUser = asynchandler(async (req, res) => {
       !gender ||
       !dateOfBirth ||
       !accent ||
-      !tribe ||
-      !ethnicity ||
+      //   !tribe ||
+      //   !ethnicity ||
       !consent ||
       !password
     ) {
@@ -97,8 +97,8 @@ const registerUser = asynchandler(async (req, res) => {
       gender,
       dateOfBirth,
       accent,
-      tribe,
-      ethnicity,
+      //   tribe,
+      //   ethnicity,
       consent,
       password,
       verified: false,
@@ -230,8 +230,8 @@ const loginUser = asynchandler(async (req, res) => {
           gender: user.gender,
           dateOfBirth: user.dateOfBirth,
           accent: user.accent,
-          tribe: user.tribe,
-          ethnicity: user.ethnicity,
+          //   tribe: user.tribe,
+          //   ethnicity: user.ethnicity,
         },
         token: token,
       };
@@ -395,8 +395,8 @@ const getUser = asynchandler(async (req, res) => {
       gender: user.gender,
       dateOfBirth: user.dateOfBirth,
       accent: user.accent,
-      tribe: user.tribe,
-      ethnicity: user.ethnicity,
+      //   tribe: user.tribe,
+      //   ethnicity: user.ethnicity,
     };
     respondsSender(
       userInfo,

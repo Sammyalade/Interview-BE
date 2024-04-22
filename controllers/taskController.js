@@ -69,7 +69,7 @@ const test = asyncHandler(async (req, res) => {
 const saveRecording = asyncHandler(async (req, res) => {
     // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, filePath) and validate
     const { userId, subDialogueId, dialogueId, taskStage, taskId } = req.body;
-      const filePath = req.uploadedFileName[0]?.metadata?.selfLink || Math.random();
+      const filePath = req.uploadedFileName[0]?.metadata?.mediaLink ;
 
     if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !filePath) {
         respondsSender(
@@ -157,7 +157,7 @@ const saveTranslate = asyncHandler(async (req, res) => {
 const saveSpeak = asyncHandler(async (req, res) => {
    // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, filePath) and validate
     const { userId, subDialogueId, dialogueId, taskStage, taskId , language } = req.body;
-      const filePath = req.uploadedFileName[0]?.metadata?.selfLink || Math.random();
+      const filePath = req.uploadedFileName[0]?.metadata?.mediaLink;
 
     if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !filePath || !language) {
         respondsSender(

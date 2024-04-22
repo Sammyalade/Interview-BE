@@ -15,9 +15,9 @@ router.post('/upload', upload.single('file'), uploadToGCS, saveGeneratedFileInfo
 
 
 router.get("/test", test); 
-router.post("/record",protect, upload.single('file'), uploadToGCS, saveRecording); 
+router.post("/record", upload.single('file'), uploadToGCS, saveRecording); 
 router.post("/translate", protect, saveTranslate); 
-router.post("/speak",protect, upload.single('file'), uploadToGCS, saveSpeak); 
+router.post("/speak", upload.single('file'), uploadToGCS, saveSpeak); 
 router.post("/skip",protect, skipTask); 
 router.get("/meter/:userId", protect, getMeter);
 

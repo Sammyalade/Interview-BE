@@ -1,9 +1,9 @@
-name: Deploy to Google Cloud Run
+name: Deploy to Google Cloud Run QA
 
 on:
   push:
     branches:
-      - main  # This workflow triggers on pushes to the main branch
+      - QA  # This workflow triggers on pushes to the QA branch
 
 jobs:
   deploy:
@@ -26,80 +26,16 @@ jobs:
       - name: Build and push Docker image
         run: |
           gcloud auth configure-docker
-          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:$GITHUB_SHA .
-          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:$GITHUB_SHA
+          docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend-qa:$GITHUB_SHA .
+          docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend-qa:$GITHUB_SHA
 
       # Step 4: Deploy to Google Cloud Run
       - name: Deploy to Cloud Run
         run: |
-          gcloud run deploy backend \
-            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend:$GITHUB_SHA \
+          gcloud run deploy backend-qa \
+            --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/backend-qa:$GITHUB_SHA \
             --platform managed \
             --region us-central1 \
             --allow-unauthenticated \
-            --set-env-vars CLOUDINARY_URL="${{ secrets.CLOUDINARY_URL }}",EMAIL_HOST="${{ secrets.EMAIL_HOST }}",EMAIL_PASS="${{ secrets.EMAIL_PASS }}",EMAIL_USER="${{ secrets.EMAIL_USER }}",FRONTEND_URL="${{ secrets.FRONTEND_URL }}",JWT_SECRET="${{ secrets.JWT_SECRET }}",MONGO_URI="${{ secrets.MONGO_URI }}",NODE_ENV="${{ secrets.NODE_ENV }}" \
+            --set-env-vars CLOUDINARY_URL="${{ secrets.CLOUDINARY_URL }}",EMAIL_HOST="${{ secrets.EMAIL_HOST }}",EMAIL_PASS="${{ secrets.EMAIL_PASS }}",EMAIL_USER="${{ secrets.EMAIL_USER }}",FRONTEND_URL="${{ secrets.FRONTEND_URL }}",JWT_SECRET="${{ secrets.JWT_SECRET }}",MONGO_URI="${{ secrets.MONGO_URI }}",NODE_ENV="qa" \
             --project ${{ secrets.GCP_PROJECT_ID }}
-
-
-
-
-
-
-
-
-
-
-
-
-# name: Deploy to Google Cloud Run
-
-# on:
-#   push:
-#     branches:
-#       - main  # This workflow triggers on pushes to the main branch
-
-# jobs:
-#   deploy:
-#     runs-on: ubuntu-latest
-
-#     steps:
-#       # Step 1: Check out the repository
-#       - name: Checkout code
-#         uses: actions/checkout@v2
-
-#       # Step 2: Set up Google Cloud SDK
-#       - name: Set up Google Cloud
-#         uses: google-github-actions/setup-gcloud@v0.2.0
-#         with:
-#           project_id: ${{ secrets.GCP_PROJECT_ID }}
-#           service_account_key: ${{ secrets.GCP_SA_KEY }}
-#           export_default_credentials: true
-
-#       # Step 3: Build and push the Docker image to Google Container Registry
-#       - name: Build and push Docker image
-#         run: |
-#           # Authenticate with GCR
-#           echo ${{ secrets.GCP_SA_KEY }} | gcloud auth activate-service-account --key-file=-
-#           # Build the Docker image
-#           docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app-name:$GITHUB_SHA .
-#           # Push the image to GCR
-#           docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app-name:$GITHUB_SHA
-
-#       # Step 4: Deploy to Google Cloud Run
-#       - name: Deploy to Cloud Run
-#         run: |
-#           gcloud run deploy my-app-name \
-#             --image gcr.io/${{ secrets.GCP_PROJECT_ID }}/my-app-name:$GITHUB_SHA \
-#             --platform managed \
-#             --region us-central1 \
-#             --allow-unauthenticated \
-#             --set-env-vars \
-#               CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},\
-#               EMAIL_HOST=${{ secrets.EMAIL_HOST }},\
-#               EMAIL_PASS=${{ secrets.EMAIL_PASS }},\
-#               EMAIL_USER=${{ secrets.EMAIL_USER }},\
-#               FRONTEND_URL=${{ secrets.FRONTEND_URL }},\
-#               JWT_SECRET=${{ secrets.JWT_SECRET }},\
-#               MONGO_URI=${{ secrets.MONGO_URI }},\
-#               NODE_ENV=${{ secrets.NODE_ENV }} \
-#             --project ${{ secrets.GCP_PROJECT_ID }}

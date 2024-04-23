@@ -10,9 +10,6 @@ const upload = multer({ storage: storage });
 
 const { uploadToGCS } = require("../utils/GCPUploads");
 
-// Use 'upload' middleware to handle file uploads
-router.post('/upload', upload.single('file'), uploadToGCS, saveGeneratedFileInfo);
-
 
 router.get("/test", test); 
 router.post("/record", upload.single('file'), uploadToGCS, saveRecording); 

@@ -194,9 +194,10 @@ async function fetchDialogues() {
     if(index==1){ 
     const fileName= document.fileName;
     const folderName= document.folder;
-    const docxContent=JSON.stringify(document.content).trim();
+    const docxContent=JSON.stringify(document.content).trim()
     //put content to db appropiately
     console.log(`Document ${index} ${docxContent}`)
+    await addContentDB(docxContent)
     // const readFile= 
     }
 });

@@ -6,6 +6,7 @@ const ResponseCode = {
     internalServerError: 500, //whenever itself is having issues
     dataDuplication: 230, //duplicated data
     unAuthorized: 401 , //unatorized user trying to use protected routes
-    invalidToken: 403  //when wrong token is passed
+    invalidToken: 403,  //when wrong token is passed
+    requestUnavailable: 209,  //Data requested not available
 }
 exports.ResponseCode = ResponseCode

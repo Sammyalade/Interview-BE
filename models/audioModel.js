@@ -6,20 +6,24 @@ const audioSchema = mongoose.Schema({
     required: [true, "Please add word translated"],
     trim: true
 },
+
 wordId:{
     type: mongoose.Schema.Types.ObjectId, 
     required: [true, "Please add word id"],
     ref:"word",
 },
+
 languageTranslatedTo :{  
     type: String,
     required: [true, "Please add Language you translated to"],
     trim: true,
 }, 
+
 recordedVoice :{  
     type: String,
-    required: [true, "sound is needed"],
+    required: [true, "Sound is needed"],
 }, 
+
 userId :{  
     type: mongoose.Schema.Types.ObjectId, 
     required: [true, "Please add contributor id"],

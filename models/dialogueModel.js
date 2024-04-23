@@ -1,19 +1,18 @@
 const mongoose = require("mongoose");
 
 const dialogueSchema = mongoose.Schema({
-    id: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included "]
-    },
+    
     title: {
         type: String,
         required: true
     },
     domain: {
         type: String,
+         default:"not specified"
     },
-    scenerio: {
+    scenario: {
         type: String,
+           default:"not specified"
     },
 
 });

@@ -60,7 +60,7 @@ async function fetchDialogues() {
   //while using a for loop, put all generated content in db
   dialogues.map((document, index)=>(
     console.log(`Document ${index} ${JSON.stringify(document)}`)
-    const readFile= JSON.stringify(document)
+    // const readFile= JSON.stringify(document)
   ));
 }
 

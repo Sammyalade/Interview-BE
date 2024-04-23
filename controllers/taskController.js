@@ -186,7 +186,7 @@ const saveSpeak = asyncHandler(async (req, res) => {
                 fetchUserTask.taskStatus = "Done";
                 fetchUserTask.taskStage = newTaskStage;
                 await fetchUserTask.save();
-                respondsSender({fetchUserTask,Speaking}, "Speaking successful", ResponseCode.successful, res);
+                respondsSender(null, "Speaking successful", ResponseCode.successful, res);
             } else {
                 respondsSender(null, "Task stage not found", ResponseCode.successful, res);
             }

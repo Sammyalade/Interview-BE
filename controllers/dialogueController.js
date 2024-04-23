@@ -29,7 +29,6 @@ const createDialogueWithDoc = asyncHandler(async (req, res) => {
     const { value } = await mammoth.extractRawText({ path: filePath });
     const docxContent = value.trim(); // Extracted text content
 
- respondsSender(docxContent, "File", ResponseCode.successful, res);
     //create algorithm to convert extracted doc into object    
     // Split the text into individual dialogues
     const dialogues = docxContent.split("\n\n\n\n");

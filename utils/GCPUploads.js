@@ -6,7 +6,7 @@ const { ResponseCode } = require('./responseCode');
 require('dotenv').config();
 
 const projectId = process.env.PROJECT_ID || 'development-416403';
-const keyFilename = process.env.KEYFILENAME || './../service.json';
+const keyFilename = process.env.KEYFILENAME || './service.json';
 const bucketName = process.env.BUCKET_NAME || 'front-end-audio-storage-awarri';
 
 const storage = new Storage({

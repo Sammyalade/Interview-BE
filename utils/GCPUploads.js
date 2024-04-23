@@ -58,7 +58,7 @@ const uploadToGCS = async (req, res, next) => {
     if(!task){
      respondsSender(
             null,
-            "please indicate task as part of your request",
+            "please indicate task(record or speak) as part of your request",
             ResponseCode.badRequest,
             res
         );

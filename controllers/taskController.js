@@ -15,11 +15,11 @@ const saveGeneratedFileInfo= asyncHandler(async (req, res) => {
   
     // Access filePath and other from the request object
   const { userId, subDialogueId, dialogueId, taskStage, taskId } = req.body;
-  const filePath = req.uploadedFileName[0]?.metadata?.selfLink || Math.random();
+  const filePath = req.uploadedFileName[0]?.metadata?.selfLink;
     if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !filePath) {
         respondsSender(
             null,
-            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, and filePath are all included in the body",
+            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, file (recorded or spoken file) and task(task type e.g record, speak ) are all included in the body",
             ResponseCode.badRequest,
             res
         );
@@ -74,7 +74,7 @@ const saveRecording = asyncHandler(async (req, res) => {
     if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !filePath) {
         respondsSender(
             null,
-            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, and filePath are all included in the body",
+                       "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, file (recorded or spoken file) and task(task type e.g record, speak ) are all included in the body",
             ResponseCode.badRequest,
             res
         );
@@ -162,7 +162,7 @@ const saveSpeak = asyncHandler(async (req, res) => {
     if (!userId || !subDialogueId || !dialogueId || !taskStage || !taskId || !filePath || !language) {
         respondsSender(
             null,
-            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, language and filePath are all included in the body",
+            "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, file (recorded or spoken file) and task(task type e.g record, speak ) are all included in the body",
             ResponseCode.badRequest,
             res
         );

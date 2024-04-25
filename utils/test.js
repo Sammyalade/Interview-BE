@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-// Create a transporter object using Gmail SMTP details
+  // Create a transporter object using Gmail SMTP details
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -15,12 +15,12 @@ const options = {
   from: "developer@awarri.com",
   to: "kunkkykukky@gmail.com",
   subject: "Subject of the Email",
-  text: "Body of the email.",
+  text: "Hello User.",
 };
 
 try {
     // Send the email
-    const info = await transporter.sendMail(options);
+    const info = transporter.sendMail(options);
     console.log("Email sent:", info);
   } catch (error) {
     console.error("Error sending email:", error);

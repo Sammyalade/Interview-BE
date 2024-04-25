@@ -3,11 +3,16 @@ const path = require('path');
 const { Storage } = require('@google-cloud/storage');
 const { respondsSender } = require('../middleWare/respondsHandler');
 const { ResponseCode } = require('./responseCode');
-require('dotenv').config();
+const dotenv = require('dotenv').config();
 
-const projectId = process.env.PROJECT_ID || 'development-416403';
-const keyFilename = process.env.KEYFILENAME || './service.json';
-const bucketName = process.env.BUCKET_NAME || 'front-end-audio-storage-awarri';
+console.log('PROJECT_ID:', process.env.PROJECT_ID);
+console.log('KEYFILENAME:', process.env.KEYFILENAME);
+console.log('BUCKET_NAME:', process.env.BUCKET_NAME);
+
+const projectId = process.env.PROJECT_ID;
+const keyFilename = process.env.KEYFILENAME;
+const bucketName = process.env.BUCKET_NAME;
+
 
 const storage = new Storage({
     projectId,

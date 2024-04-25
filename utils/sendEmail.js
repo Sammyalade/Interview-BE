@@ -1,14 +1,18 @@
 const nodemailer = require("nodemailer");
+const dotenv = require("dotenv").config();
+
+console.log('EMAIL_USER:', process.env.EMAIL_USER);
+console.log('EMAIL_PASS:', process.env.EMAIL_PASS);
 
 // Create Email Transporter
 const sendEmail = async (subject, message, send_to, sent_from, reply_to) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
-      user: "developer@awarri.com",
-      pass: 'jevn xdrl egpc vhyn', // Use an App Password for enhanced security
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
     },
-    from: "developer@awarri.com",
+    from: process.env.EMAIL_USER,
   });
 
   // Options for sending Email
@@ -29,4 +33,4 @@ const sendEmail = async (subject, message, send_to, sent_from, reply_to) => {
   }
 };
 
-module.exports = sendEmail;
+module.exports = sendEmail; 

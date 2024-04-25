@@ -4,6 +4,7 @@ const { ResponseCode } = require("../utils/responseCode");
 const Dialogue = require("../models/dialogueModel");
 const subDialogue = require("../models/subDialogueModel");
 const userTask = require("../models/userTaskModel");
+const DAstatus = require("../models/dAssignmentStatus");
 
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
@@ -329,6 +330,18 @@ const getSingleTask = asyncHandler(async (req, res) => {
 
     // If there are no undone tasks found for the user, return an appropriate response
     if (!result) {
+      // Check if user has ever been assigned tasks or not
+      const everAssigned = await DAstatus.findOne({userId, status: true})
+      if (!everAssigned) {
+        
+      return respondsSender(
+        null,
+        "No tasks has been assigned to user.",
+        ResponseCode.requestUnavailable,
+        res
+      );
+      }
+
       return respondsSender(
         null,
         "No undone tasks found for the user all task has been done/skipped",

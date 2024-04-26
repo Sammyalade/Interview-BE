@@ -5,10 +5,6 @@ const { respondsSender } = require('../middleWare/respondsHandler');
 const { ResponseCode } = require('./responseCode');
 const dotenv = require('dotenv').config();
 
-console.log('PROJECT_ID:', process.env.PROJECT_ID);
-console.log('KEYFILENAME:', process.env.KEYFILENAME);
-console.log('BUCKET_NAME:', process.env.BUCKET_NAME);
-
 const projectId = process.env.PROJECT_ID;
 const keyFilename = process.env.KEYFILENAME;
 const bucketName = process.env.BUCKET_NAME;

@@ -10,6 +10,8 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
+const dotenv = require('dotenv').config();
+const { frontEndUrl } = require("../utils/frontEndUrl");
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -77,7 +79,7 @@ const registerUser = asynchandler(async (req, res) => {
       );
     }
     const lowerEmail = email.toLowerCase();
-    console.log(lowerEmail);
+
     // Validation check if user email already exists
     const userExists = await User.findOne({ email: lowerEmail });
     if (userExists) {
@@ -108,7 +110,8 @@ const registerUser = asynchandler(async (req, res) => {
     const randomText = generateRandomString(12);
 
     // Construct Reset URL
-    const verifyUrl = `${process.env.FRONTEND_URL}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
+    const environment = process.env.FRONTEND_URL;
+    const verifyUrl = `${frontEndUrl[environment]}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
 
     // Reset Email.
     const message = `
@@ -524,7 +527,8 @@ const forgotPassword = asynchandler(async (req, res) => {
 
   const randomText = generateRandomString(12);
   //construct Reset URL
-  const resetUrl = `${process.env.FRONTEND_URL}reset-password?token=${resetToken}&&jzhdh=${randomText}`;
+  const environment = process.env.FRONTEND_URL;
+  const resetUrl = `${frontEndUrl[environment]}reset-password?token=${resetToken}&&jzhdh=${randomText}`;
 
   // Reset Email
   const message = `

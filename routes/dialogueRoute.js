@@ -9,6 +9,7 @@ const {
   getSkippedTasks,
   getSingleTask,
 } = require("../controllers/dialogueController");
+const {  fetchDialogues } = require("../utils/readContent");
 const protect = require("../middleWare/authMiddleware");
 
 const { upload } = require("../utils/fileUpload");
@@ -19,9 +20,14 @@ router.get("/getsingletask/:userId",protect, getSingleTask);
 router.get("/getskippedtasks/:userId",protect, getSkippedTasks);
 router.get("/getundonetasks/:userId",protect, getUndoneTasks);
 router.get("/getdonetasks/:userId",protect, getDoneTasks);
+
+router.get("/fecthgcp", fetchDialogues); //read all doc from GCP to DB
+ 
+
 router.post("/generate", upload.single("dialogueDoc"), createDialogueWithDoc); //route for csv upload
 
 /*
+
 ROUTES
     // 1. Get all tasks of a user.
     // 2. Get all undone tasks of a user.

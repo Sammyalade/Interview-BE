@@ -3,6 +3,7 @@ const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const Dialogue = require("../models/dialogueModel");
 const subDialogue = require("../models/subDialogueModel");
+const dotenv = require("dotenv").config();
 
 
 const { Storage } = require('@google-cloud/storage');
@@ -13,7 +14,7 @@ const storage = new Storage();
 async function main() {
   try {
     // List all files in the "Test Dialogue" folder and its subfolders
-    const [files] = await storage.bucket('front-end-audio-storage-awarri').getFiles({
+    const [files] = await storage.bucket(process.env.BUCKET_NAME).getFiles({
       prefix: 'Test Dialogue/', // Filter by folder path
     });
 

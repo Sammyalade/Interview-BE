@@ -1,9 +1,10 @@
 const { google } = require('googleapis');
 const mammoth = require('mammoth');
+const dotenv = require("dotenv").config();
 
 // Authenticate to Google Drive
 const auth = new google.auth.GoogleAuth({
-  keyFile: '../service.json',
+  keyFile: "../service.json",
   scopes: ['https://www.googleapis.com/auth/drive']
 });
 const drive = google.drive({ version: 'v3', auth });

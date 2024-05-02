@@ -21,7 +21,7 @@ router.get("/getskippedtasks/:userId",protect, getSkippedTasks);
 router.get("/getundonetasks/:userId",protect, getUndoneTasks);
 router.get("/getdonetasks/:userId",protect, getDoneTasks);
 
-router.get("/fecthgcp", fetchDialogues); //read all doc from GCP to DB
+router.get("/fetchgcp", fetchDialogues); //read all doc from GCP to DB
  
 
 router.post("/generate", upload.single("dialogueDoc"), createDialogueWithDoc); //route for csv upload

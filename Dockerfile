@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Inform Docker the container is listening on port 4000 at runtime
-EXPOSE 4000
+EXPOSE 8080
 
 # Define the command to run the application
 CMD ["node", "server.js"]

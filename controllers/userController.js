@@ -10,7 +10,7 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
-const dotenv = require('dotenv').config();
+const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
 
 const generateToken = (id) => {

@@ -4,7 +4,7 @@ const dotenv = require("dotenv").config();
 
 // Authenticate to Google Drive
 const auth = new google.auth.GoogleAuth({
-  keyFile: process.env.KEYFILENAME,
+  keyFile: "./service.json",
   scopes: ['https://www.googleapis.com/auth/drive']
 });
 const drive = google.drive({ version: 'v3', auth });

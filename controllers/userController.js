@@ -10,7 +10,7 @@ const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
-const dotenv = require('dotenv').config();
+const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
 
 const generateToken = (id) => {
@@ -110,7 +110,7 @@ const registerUser = asynchandler(async (req, res) => {
     const randomText = generateRandomString(12);
 
     // Construct Reset URL
-    const environment = process.env.FRONTEND_URL;
+    const environment = process.env.ENVIRONMENT;
     const verifyUrl = `${frontEndUrl[environment]}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
 
     // Reset Email.
@@ -527,7 +527,7 @@ const forgotPassword = asynchandler(async (req, res) => {
 
   const randomText = generateRandomString(12);
   //construct Reset URL
-  const environment = process.env.FRONTEND_URL;
+  const environment = process.env.ENVIRONMENT;
   const resetUrl = `${frontEndUrl[environment]}reset-password?token=${resetToken}&&jzhdh=${randomText}`;
 
   // Reset Email

@@ -6,7 +6,7 @@ const { ResponseCode } = require("./responseCode");
 const dotenv = require("dotenv").config();
 
 const projectId = process.env.PROJECT_ID;
-const keyFilename = "../service.json" //process.env.KEYFILENAME;
+const keyFilename = "./service.json"; //process.env.KEYFILENAME;
 const bucketName = process.env.BUCKET_NAME;
 
 const storage = new Storage({
@@ -14,13 +14,18 @@ const storage = new Storage({
   keyFilename,
 });
 
-async function uploadFile(bucketName, file, fileOutputName, folderName, language) {
+async function uploadFile(
+  bucketName,
+  file,
+  fileOutputName,
+  folderName,
+  language
+) {
   try {
     const bucket = storage.bucket(bucketName);
-    const subFolder=  language || "English"
+    const subFolder = language || "English";
     const destination = folderName
-      ? `${process.env.ENVIRONMENT}/${folderName}/${subFolder
-        }/${fileOutputName}`
+      ? `${process.env.ENVIRONMENT}/${folderName}/${subFolder}/${fileOutputName}`
       : fileOutputName;
     `${folderName}`;
     // Check if the folder exists

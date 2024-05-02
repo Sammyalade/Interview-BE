@@ -6,7 +6,7 @@ const { ResponseCode } = require("./responseCode");
 const dotenv = require("dotenv").config();
 
 const projectId = process.env.PROJECT_ID;
-const keyFilename = "./service.json" //process.env.KEYFILENAME;
+const keyFilename = "../service.json" //process.env.KEYFILENAME;
 const bucketName = process.env.BUCKET_NAME;
 
 const storage = new Storage({

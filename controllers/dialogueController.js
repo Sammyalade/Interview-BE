@@ -171,15 +171,24 @@ const getUserTasks = asyncHandler(async (req, res) => {
 
     const userTasks = await userTask.find({ userId });
     // Extract subDialogueIds and taskStages from userTasks
-    const subDialogueIdsWithTaskStages = userTasks.map((task) => ({
-      subDialogueId: task.subDialogueId,
+    
+    
+    const userTaskWithTaskStages = userTasks.map((task) => ({
+      subDialogueId: task.type === "Oratory" ? null: task.subDialogueId ,
+      oratoryId: task.type === "Oratory" ? task.oratoryId : null,
       taskStage: task.taskStage, // Assuming this is how you access the taskStage field
+      // Query subDialogue using the extracted subDialogueIds
+      
+      // Query oratory using the extracted oratory id
     }));
-
+ 
+    console.log(userTaskWithTaskStages);
     // Query subDialogue using the extracted subDialogueIds
+    let fetchTask; 
+    
     const subDialogues = await subDialogue.find({
       _id: {
-        $in: subDialogueIdsWithTaskStages.map((item) => item.subDialogueId),
+        $in: userTaskWithTaskStages.map((item) => item.subDialogueId),
       },
     });
 

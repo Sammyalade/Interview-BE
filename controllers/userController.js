@@ -280,7 +280,7 @@ const oratoryAssigner = async (numToAssign, user) => {
         type: "Oratory",
       });
 
-      console.log();
+      console.log(newUserTask);
 
       try {
         // Attempt to save the new user task
@@ -386,8 +386,8 @@ const loginUser = asynchandler(async (req, res) => {
 
       const numToAssign = 10;
       if (!foundDaStatus) {
-        // Assign Dialogue Tasks
-        dialogueAssigner(numToAssign, user);
+        // Assign Dialogue Tasks 
+        //dialogueAssigner(numToAssign, user);
         oratoryAssigner(numToAssign, user);
         // oratoryAssigner(numToAssign, user);
       } else {

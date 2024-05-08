@@ -10,8 +10,6 @@ const subDialogueSchema = mongoose.Schema({
         type: String,
         required: false
     },
-
-
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included "],

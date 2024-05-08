@@ -183,15 +183,16 @@ const getUserTasks = asyncHandler(async (req, res) => {
       },
     });
 
+    console.log(subDialogues);
     // Combine subDialogues with their corresponding taskStages
     const subDialoguesWithTaskStages = subDialogues.map((subDialogueItem) => {
       const { _id, ...rest } = subDialogueItem.toObject(); // Extract properties excluding _id
       const taskStage = subDialogueIdsWithTaskStages.find((item) =>
-        item.subDialogueId.equals(_id)
-      ); // Find corresponding taskStage
+        item.subDialogueId && item.subDialogueId.equals(_id)
+      ); // Find corresponding taskStage if subDialogueId exists
       return { ...rest, taskStage: taskStage ? taskStage.taskStage : null }; // Combine subDialogueItem with taskStage
     });
-
+    
     // Now subDialoguesWithTaskStages contains all subDialogue items associated with their respective taskStages
 
     // Respond with subDialoguesWithTaskStages

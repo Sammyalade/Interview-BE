@@ -11,14 +11,20 @@ const recordSchema = mongoose.Schema({
 
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included"],
+        required: [false, "id not included"],
         ref: "dialogue"
     },
 
     subDialogueId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included"],
+        required: [false, "id not included"],
         ref: "subDialogue"
+    },
+
+    oratoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: [false, "id not included "],
+        ref: "oratory"
     },
 
     userId: {

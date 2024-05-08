@@ -1,8 +1,9 @@
 const asynchandler = require("express-async-handler");
 const User = require("../models/userModel");
-const daStatus = require("../models/dAssignmentStatus");
+const DAstatus = require("../models/dAssignmentStatus");
 const Token = require("../models/tokenModel");
 const subDialogue = require("../models/subDialogueModel");
+const Oratory = require("../models/oratoryModel");
 const userTask = require("../models/userTaskModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -182,6 +183,144 @@ const verifyUser = asynchandler(async (req, res) => {
   }
 });
 
+// Function that assigns Dialogue Tasks
+const dialogueAssigner = async (numToAssign, user) => {
+  try {
+    // Retrieve all subDialogues from the database where assignmentStatus is false
+    const allSubDialogues = await subDialogue
+      .find({ assignmentStatus: false })
+      .limit(numToAssign * 2);
+
+    //check number of retrieved subDialogu
+    const numOfAllSubDialog = allSubDialogues.length;
+    // Initialize an array to store the selected subDialogues
+    const selectedSubDialogues = [];
+
+    //share dialogue evenly if all dialogus is more than what is to be share else dont evenly share
+    if (numOfAllSubDialog > numToAssign) {
+      for (let i = 1; i <= allSubDialogues.length; i += 2) {
+        selectedSubDialogues.push(allSubDialogues[i]);
+      }
+    } else {
+      for (let i = 1; i <= allSubDialogues.length; i++) {
+        selectedSubDialogues.push(allSubDialogues[i]);
+      }
+      g;
+    }
+
+    // Initialize a variable to keep track of the alternating assignment status
+    let assign = true;
+
+    // Iterate over the selected subDialogues
+    for (let i = 0; i < selectedSubDialogues.length; i++) {
+      const subDialogueItem = selectedSubDialogues[i];
+
+      // Create a new user task
+      const newUserTask = new userTask({
+        taskStatus: "Undone",
+        subDialogueId: subDialogueItem._id,
+        userId: user._id, // Replace with the actual user ID
+        type: "dialogue",
+      });
+
+      // Assign task or skip based on the alternating assign status
+      if (assign) {
+        await newUserTask.save();
+        // Update the assignmentStatus of the subDialogueItem
+        await subDialogue.findByIdAndUpdate(subDialogueItem._id, {
+          assignmentStatus: true,
+        });
+      }
+    }
+
+    //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
+    const existingTask = await DAstatus.findOne({ userId: user._id });
+    if (existingTask) {
+      // If the user already has a task assigned, update its status to true
+      existingTask.status = true;
+      existingTask.taskType = "Dialogue";
+      await existingTask.save();
+    } else {
+      // If the user does not have a task assigned, insert a new document
+      const newTask = new DAstatus({
+        userId: user._id,
+        status: true,
+        taskType: "Dialogue",
+      });
+      await newTask.save();
+    }
+
+    // respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res);
+  } catch (error) {
+    // respondsSender(error, "Error creating user tasks", ResponseCode.internalServerError, res);
+  }
+};
+
+//Function that assigns oratory task
+const oratoryAssigner = async (numToAssign, user) => {
+  console.log("user has completed the previous task i should assign oratory");
+  try {
+    // Retrieve all subDialogues from the database where assignmentStatus is false
+    const allOratory = await Oratory.find({ assignmentStatus: false }).limit(
+      numToAssign
+    );
+
+    //check number of retrieved subDialogues
+    const numOfAllOratory = allOratory.length;
+
+    // Iterate over the selected subDialogues
+    for (let i = 0; i < numOfAllOratory; i++) {
+      const oratoryItem = allOratory[i];
+
+      // Create a new user task
+      const newUserTask = new userTask({
+        taskStatus: "Undone",
+        oratoryId: oratoryItem._id,
+        userId: user._id,
+        type: "Oratory",
+      });
+
+      console.log();
+
+      try {
+        // Attempt to save the new user task
+        const savedUserTask = await newUserTask.save();
+        // If the save operation succeeds, `savedUserTask` will contain the saved document
+        console.log("User task saved successfully:", savedUserTask);
+
+        // Update the assignmentStatus of the subDialogueItem
+        await Oratory.findByIdAndUpdate(oratoryItem._id, {
+          assignmentStatus: true,
+        });
+      } catch (error) {
+        // If an error occurs during the save operation, it will be caught here
+        console.error("Error saving user task:", error);
+      }
+    }
+
+    //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
+    const existingTask = await DAstatus.findOne({ userId: user._id });
+    if (existingTask) {
+      // If the user already has a task assigned, update its status to true
+      existingTask.status = true;
+      existingTask.taskType = "Oratory";
+      await existingTask.save();
+    } else {
+      // If the user does not have a task assigned, insert a new document
+      const newTask = new DAstatus({
+        userId: user._id,
+        status: true,
+        taskType: "Oratory",
+      });
+      await newTask.save();
+    }
+    console.log("everything checked out fine");
+    // respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res);
+  } catch (error) {
+    // respondsSender(error, "Error creating user tasks", ResponseCode.internalServerError, res);
+  }
+};
+
 //Login user
 const loginUser = asynchandler(async (req, res) => {
   const { email, password } = req.body;
@@ -240,80 +379,50 @@ const loginUser = asynchandler(async (req, res) => {
       };
 
       // Check Tasks
-      const foundDaStatus = await daStatus.findOne({
+      const foundDaStatus = await DAstatus.findOne({
         userId: user._id,
         status: true,
       });
 
+      const numToAssign = 10;
       if (!foundDaStatus) {
-        const numToAssign = 10;
-        try {
-          // Retrieve all subDialogues from the database where assignmentStatus is false
-          const allSubDialogues = await subDialogue
-            .find({ assignmentStatus: false })
-            .limit(numToAssign * 2);
-
-          //check number of retrieved subDialogu
-          const numOfAllSubDialog = allSubDialogues.length;
-          // Initialize an array to store the selected subDialogues
-          const selectedSubDialogues = [];
-
-          //share dialogue evenly if all dialogus is more than what is to be share else dont evenly share
-          if (numOfAllSubDialog > numToAssign) {
-            for (let i = 1; i <= allSubDialogues.length; i += 2) {
-              selectedSubDialogues.push(allSubDialogues[i]);
-            }
-          } else {
-            for (let i = 1; i <= allSubDialogues.length; i++) {
-              selectedSubDialogues.push(allSubDialogues[i]);
-            }
-          }
-
-          // Initialize a variable to keep track of the alternating assignment status
-          let assign = true;
-          // Iterate over the selected subDialogues
-          for (let i = 0; i < selectedSubDialogues.length; i++) {
-            const subDialogueItem = selectedSubDialogues[i];
-
-            // Create a new user task
-            const newUserTask = new userTask({
-              taskStatus: "Undone",
-              subDialogueId: subDialogueItem._id,
-              userId: user._id, // Replace with the actual user ID
-              type: "dialogue",
-            });
-
-            // Assign task or skip based on the alternating assign status
-            if (assign) {
-              await newUserTask.save();
-              // Update the assignmentStatus of the subDialogueItem
-              await subDialogue.findByIdAndUpdate(subDialogueItem._id, {
-                assignmentStatus: true,
-              });
-            }
-          }
-
-          //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
-          const existingTask = await daStatus.findOne({ userId: user._id });
-          if (existingTask) {
-            // If the user already has a task assigned, update its status to true
-            existingTask.status = true;
-            await existingTask.save();
-          } else {
-            // If the user does not have a task assigned, insert a new document
-            const newTask = new daStatus({
-              userId: user._id,
-              status: true,
-            });
-            await newTask.save();
-          }
-
-          // respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res);
-        } catch (error) {
-          // respondsSender(error, "Error creating user tasks", ResponseCode.internalServerError, res);
-        }
+        // Assign Dialogue Tasks
+        dialogueAssigner(numToAssign, user);
+        oratoryAssigner(numToAssign, user);
+        // oratoryAssigner(numToAssign, user);
       } else {
-        // respondsSender(null, "User tasks already exist", ResponseCode.badRequest, res);
+        // check if user has finished task assigned to them, and assign new task
+        //fecth user task where status is undone,
+        
+        try {
+          // Query userTasks to find undone tasks for the user
+          const userTasks = await userTask.find({
+            userId: user._id,
+            taskStatus: "Undone",
+          }); // Assuming taskStatus field indicates the status of the task
+
+          // If there are no undone tasks found for the user, return an appropriate response
+          if (userTasks.length === 0) {
+            //check the last assigned task and assign new task (dialog or oratory)
+            if (foundDaStatus.taskType == "Oratory") {
+              //assign subdialogs
+              dialogueAssigner(numToAssign, user);
+            } else {
+              //assign oratory
+              // oratoryAssigner(numToAssign, user);
+            }
+          }
+        } catch (error) {
+          // Handle errors
+          console.error("Error fetching user tasks:", error);
+
+          respondsSender(
+            error.message,
+            null,
+            ResponseCode.internalServerError,
+            res
+          ); // Pass internal server error status code
+        }
       }
 
       respondsSender(data, "Login successful", ResponseCode.successful, res);

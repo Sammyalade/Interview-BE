@@ -17,10 +17,15 @@ const userTaskSchema = mongoose.Schema({
 
     subDialogueId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included "],
+        required: [false, "id not included "],
         ref: "subDialogue"
     },
-
+    
+    oratoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: [false, "id not included "],
+        ref: "oratory"
+    },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included"],

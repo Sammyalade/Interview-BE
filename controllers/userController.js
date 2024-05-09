@@ -13,6 +13,7 @@ const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
+const taskAssigner = require('../utils/taskAssigner')
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -219,7 +220,7 @@ const dialogueAssigner = async (numToAssign, user) => {
       const newUserTask = new userTask({
         taskStatus: "Undone",
         subDialogueId: subDialogueItem._id,
-        userId: user._id, // Replace with the actual user ID
+        userId: user, // Replace with the actual user ID
         type: "dialogue",
       });
 
@@ -234,7 +235,7 @@ const dialogueAssigner = async (numToAssign, user) => {
     }
 
     //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
-    const existingTask = await DAstatus.findOne({ userId: user._id });
+    const existingTask = await DAstatus.findOne({ userId: user });
     if (existingTask) {
       // If the user already has a task assigned, update its status to true
       existingTask.status = true;
@@ -243,7 +244,7 @@ const dialogueAssigner = async (numToAssign, user) => {
     } else {
       // If the user does not have a task assigned, insert a new document
       const newTask = new DAstatus({
-        userId: user._id,
+        userId: user,
         status: true,
         taskType: "Dialogue",
       });
@@ -276,7 +277,7 @@ const oratoryAssigner = async (numToAssign, user) => {
       const newUserTask = new userTask({
         taskStatus: "Undone",
         oratoryId: oratoryItem._id,
-        userId: user._id,
+        userId: user,
         type: "Oratory",
       });
 
@@ -298,7 +299,7 @@ const oratoryAssigner = async (numToAssign, user) => {
     }
 
     //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
-    const existingTask = await DAstatus.findOne({ userId: user._id });
+    const existingTask = await DAstatus.findOne({ userId: user });
     if (existingTask) {
       // If the user already has a task assigned, update its status to true
       existingTask.status = true;
@@ -307,7 +308,7 @@ const oratoryAssigner = async (numToAssign, user) => {
     } else {
       // If the user does not have a task assigned, insert a new document
       const newTask = new DAstatus({
-        userId: user._id,
+        userId: user,
         status: true,
         taskType: "Oratory",
       });
@@ -386,9 +387,9 @@ const loginUser = asynchandler(async (req, res) => {
       const numToAssign = 10;
       if (!foundDaStatus) {
         // Assign Dialogue Tasks 
-        dialogueAssigner(numToAssign, user);
-        
-        // oratoryAssigner(numToAssign, user);
+      
+       taskAssigner(numToAssign, user._id)
+     
       } else {
         // check if user has finished task assigned to them, and assign new task
         //fecth user task where status is undone,
@@ -403,14 +404,7 @@ const loginUser = asynchandler(async (req, res) => {
           // If there are no undone tasks found for the user, return an appropriate response
           if (userTasks.length === 0) {
             //check the last assigned task and assign new task (dialog or oratory)
-            if (foundDaStatus.taskType == "Oratory") {
-              //assign subdialogs
-              dialogueAssigner(numToAssign, user);
-              
-            } else {
-              //assign oratory
-               oratoryAssigner(numToAssign, user);
-            }
+            taskAssigner(numToAssign, user._id)
           }
         } catch (error) {
           // Handle errors

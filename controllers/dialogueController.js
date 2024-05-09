@@ -6,7 +6,9 @@ const subDialogue = require("../models/subDialogueModel");
 const userTask = require("../models/userTaskModel");
 const DAstatus = require("../models/dAssignmentStatus");
 const Oratory = require("../models/oratoryModel");
+const taskAssigner = require("../utils/taskAssigner");
 
+const numToAssign = 10;
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
     null,
@@ -352,14 +354,14 @@ const getSingleTask = asyncHandler(async (req, res) => {
     const userId = req.params.userId; // Assuming you get the user ID from the request parameters
 
     // Query userTasks to find undone tasks for the user, sorted by creation date in descending order
-    const result = await userTask.findOne({ userId, taskStatus: "Undone" }).sort({ updatedAt: -1 }).limit(1); 
+    const result = await userTask.findOne({ userId, taskStatus: { $ne: "done" } }).sort({ updatedAt: -1 }).limit(1);
 
     // If there are no undone tasks found for the user, return an appropriate response
     if (!result) {
       // Check if user has ever been assigned tasks or not
       const everAssigned = await DAstatus.findOne({userId, status: true})
       if (!everAssigned) {
-        
+        taskAssigner(numToAssign, userId)
       return respondsSender(
         null,
         "No tasks has been assigned to user.",
@@ -368,25 +370,50 @@ const getSingleTask = asyncHandler(async (req, res) => {
       );
       }
 
+      //assign new Task of either oratory or sub dialog base on previous assignment
+      taskAssigner(numToAssign, userId)
       return respondsSender(
         null,
-        "No undone tasks found for the user all task has been done/skipped",
+        "Congratulations Task completed!",
         ResponseCode.requestUnavailable,
         res
       );
     }
 
     // Extract the subDialogueId from the last undone task
-    const subDialogueId = result.subDialogueId;
-
-    // Query subDialogue using the extracted subDialogueId
-    const subDialogueResult = await subDialogue.findOne({ _id: subDialogueId });
-
+    const resultId = result.subDialogueId || result.oratoryId;
+    console.log(result);
+    
+    let taskResult, subDialogueId, oratoryId;
+    
+    if (result.type === "Dialogue") {
+        // Query subDialogue using the extracted subDialogueId
+        taskResult = await subDialogue.findOne({ _id: resultId });
+        if (taskResult) {
+            subDialogueId = taskResult._id;
+            oratoryId=null;
+        } else {
+            console.log("No task result found for dialogue type.");
+        }
+    } else if (result.type === "Oratory") {
+        // Query Oratory using the extracted oratoryId
+        taskResult = await Oratory.findOne({ _id: resultId });
+        if (taskResult) {
+            oratoryId = taskResult._id;
+            subDialogueId = null;
+            console.log(`Task result: ${taskResult}`);
+        } else {
+            console.log("No task result found for oratory type.");
+        }
+    } else {
+        console.log("Unsupported task type.");
+    }
+    
     // If no subDialogue found with the given ID, return an appropriate response
-    if (!subDialogueResult) {
+    if (!taskResult) {
       return respondsSender(
         null,
-        "No subDialogue found with the given ID",
+        "No task found with the given ID",
         ResponseCode.noData,
         res
       );
@@ -394,11 +421,12 @@ const getSingleTask = asyncHandler(async (req, res) => {
 
     // Prepare the response data
     const responseData = {
-      text: subDialogueResult.text,
-      subDialogueId:subDialogueResult._id,
-      dialogueId: subDialogueResult.dialogueId, // Assuming you want to access dialogueId field
+      text: taskResult.text,
+      subDialogueId,
+      oratoryId,
       taskId: result._id,  
-      taskStage: result.taskStage
+      taskStage: result.taskStage,
+      taskType:result.type
     };
 
     // Respond with the prepared data

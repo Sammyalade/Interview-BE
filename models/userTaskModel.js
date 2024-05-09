@@ -36,7 +36,7 @@ const userTaskSchema = mongoose.Schema({
         required: true,
         default: "dialogue"
     }
-})
+}, { timestamps: true })
 
 const UserTask = mongoose.model("UserTask", userTaskSchema);
 

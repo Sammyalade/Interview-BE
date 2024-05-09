@@ -5,6 +5,7 @@ const Dialogue = require("../models/dialogueModel");
 const subDialogue = require("../models/subDialogueModel");
 const userTask = require("../models/userTaskModel");
 const DAstatus = require("../models/dAssignmentStatus");
+const Oratory = require("../models/oratoryModel");
 
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
@@ -172,41 +173,55 @@ const getUserTasks = asyncHandler(async (req, res) => {
     const userTasks = await userTask.find({ userId });
     // Extract subDialogueIds and taskStages from userTasks
     
-    
-    const userTaskWithTaskStages = userTasks.map((task) => ({
-      subDialogueId: task.type === "Oratory" ? null: task.subDialogueId ,
-      oratoryId: task.type === "Oratory" ? task.oratoryId : null,
-      taskStage: task.taskStage, // Assuming this is how you access the taskStage field
-      // Query subDialogue using the extracted subDialogueIds
-      
-      // Query oratory using the extracted oratory id
-    }));
- 
-    console.log(userTaskWithTaskStages);
-    // Query subDialogue using the extracted subDialogueIds
-    let fetchTask; 
-    
-    const subDialogues = await subDialogue.find({
-      _id: {
-        $in: userTaskWithTaskStages.map((item) => item.subDialogueId),
-      },
-    });
+    // Create an array containing tasks with their corresponding task stages and types
+const userTaskWithTaskStages = userTasks.map((task) => ({
+  subDialogueId: task.type === "Oratory" ? null : task.subDialogueId,
+  oratoryId: task.type === "Oratory" ? task.oratoryId : null,
+  taskStage: task.taskStage,
+  taskType: task.type
+}));
 
-    console.log(subDialogues);
-    // Combine subDialogues with their corresponding taskStages
-    const subDialoguesWithTaskStages = subDialogues.map((subDialogueItem) => {
-      const { _id, ...rest } = subDialogueItem.toObject(); // Extract properties excluding _id
-      const taskStage = subDialogueIdsWithTaskStages.find((item) =>
-        item.subDialogueId && item.subDialogueId.equals(_id)
-      ); // Find corresponding taskStage if subDialogueId exists
-      return { ...rest, taskStage: taskStage ? taskStage.taskStage : null }; // Combine subDialogueItem with taskStage
-    });
+// Fetch tasks from Oratory or subDialog based on their type
+const fetchTasks = await Promise.all(userTaskWithTaskStages.map(async (item) => {
+  if (item.taskType === "Oratory") {
+    const oratoryTask = await Oratory.findById(item.oratoryId);
+    return oratoryTask ? oratoryTask.toObject() : null;
+  } else if (item.taskType === "dialogue") {
+    const subDialogTask = await subDialogue.findById(item.subDialogueId);
+    return subDialogTask ? subDialogTask.toObject() : null;
+  }
+}));
+
+console.log(fetchTasks);
+// Combine fetched tasks with their corresponding task stages
+const tasksWithTaskStages = fetchTasks.map((task, index) => ({
+  ...task,
+
+  subDialogueId: userTaskWithTaskStages[index].subDialogueId,
+  oratoryId: userTaskWithTaskStages[index].oratoryId,
+  taskStage: userTaskWithTaskStages[index].taskStage,
+  taskType: userTaskWithTaskStages[index].taskType,
+
+}));
+
+// console.log(tasksWithTaskStages); // Verify the content
+
+   
+    // console.log(oratoryTasks);
+    // // Combine subDialogues with their corresponding taskStages
+    // const fetchOratory = oratoryTasks.map((oratoryItem) => {
+    //   const { _id, ...rest } = oratoryItem.toObject(); // Extract properties excluding _id
+    //   const taskStage = userTaskWithTaskStages.find((item) =>
+    //     item.oratoryId && item.oratoryId.equals(_id)
+    //   ); // Find corresponding taskStage if subDialogueId exists
+    //   return { ...rest, taskStage: taskStage ? taskStage.taskStage : null }; // Combine subDialogueItem with taskStage
+    // });
     
     // Now subDialoguesWithTaskStages contains all subDialogue items associated with their respective taskStages
 
     // Respond with subDialoguesWithTaskStages
     respondsSender(
-      subDialoguesWithTaskStages,
+      tasksWithTaskStages,
       "User tasks retrieved successfully",
       ResponseCode.successful,
       res
@@ -337,7 +352,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
     const userId = req.params.userId; // Assuming you get the user ID from the request parameters
 
     // Query userTasks to find undone tasks for the user, sorted by creation date in descending order
-    const result = await userTask.findOne({ userId, taskStatus: "Undone" }).sort({ createdAt: -1 }).limit(1); 
+    const result = await userTask.findOne({ userId, taskStatus: "Undone" }).sort({ updatedAt: -1 }).limit(1); 
 
     // If there are no undone tasks found for the user, return an appropriate response
     if (!result) {

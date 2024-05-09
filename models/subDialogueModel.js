@@ -31,7 +31,7 @@ const subDialogueSchema = mongoose.Schema({
         required: true,
         default: false
     }
-});
+}, { timestamps: true });
 
 const SubDialogue = mongoose.model("SubDialogue", subDialogueSchema);
 

@@ -32,7 +32,7 @@ const recordSchema = mongoose.Schema({
         required: [true, "id not included"],
         ref: "user"
     }
-});
+}, { timestamps: true });
 
 const Record = mongoose.model("Record", recordSchema);
 

@@ -33,7 +33,7 @@ const translateSchema = mongoose.Schema({
         require:true,
         type:String
     }
-});
+}, { timestamps: true });
 
 const Translate = mongoose.model("Translate", translateSchema);
 

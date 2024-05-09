@@ -18,7 +18,7 @@ const oratorySchema = mongoose.Schema({
         required: true,
         default: false
     }
-});
+}, { timestamps: true });
 
 const Oratory = mongoose.model("Oratory", oratorySchema);
 

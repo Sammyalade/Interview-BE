@@ -280,7 +280,6 @@ const oratoryAssigner = async (numToAssign, user) => {
         type: "Oratory",
       });
 
-      console.log(newUserTask);
 
       try {
         // Attempt to save the new user task
@@ -387,8 +386,8 @@ const loginUser = asynchandler(async (req, res) => {
       const numToAssign = 10;
       if (!foundDaStatus) {
         // Assign Dialogue Tasks 
-        //dialogueAssigner(numToAssign, user);
-        oratoryAssigner(numToAssign, user);
+        dialogueAssigner(numToAssign, user);
+        
         // oratoryAssigner(numToAssign, user);
       } else {
         // check if user has finished task assigned to them, and assign new task
@@ -407,9 +406,10 @@ const loginUser = asynchandler(async (req, res) => {
             if (foundDaStatus.taskType == "Oratory") {
               //assign subdialogs
               dialogueAssigner(numToAssign, user);
+              
             } else {
               //assign oratory
-              // oratoryAssigner(numToAssign, user);
+               oratoryAssigner(numToAssign, user);
             }
           }
         } catch (error) {

@@ -36,7 +36,7 @@ const speakSchema = mongoose.Schema({
         require:true,
         type:String
     }
-});
+}, { timestamps: true });
 
 const Speak = mongoose.model("Speak", speakSchema);
 

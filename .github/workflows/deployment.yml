@@ -3,10 +3,10 @@ name: Build and Deploy to Google Cloud Run
 on:
   push:
     branches:
-main
-dev
-QA
-preprod
+      - main
+      - dev
+      - QA
+      - preprod
 
 jobs:
   setup-build-deploy:
@@ -14,58 +14,57 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-name: Set up Cloud SDK
-      uses: google-github-actions/setup-gcloud@v0.2.0
-      with:
-        project_id: ${{ secrets.GCP_PROJECT_ID }}
-        service_account_key: ${{ secrets.GCP_SA_KEY }}
-        export_default_credentials: true
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v0.2.0
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          export_default_credentials: true
 
-name: Determine suffix, tag, and service name
-      run: |
-        echo "Branch Ref: ${{ github.ref }}"
-        if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-          suffix=""
-          service="backend"
-          mongo_uri="${{ secrets.MONGO_URI }}"
-        elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
-          suffix="-dev"
-          service="backend-dev"
-          mongo_uri="${{ secrets.DEV_MONGO_URI }}"
-        elif [[ "${{ github.ref }}" == "refs/heads/QA" ]]; then
-          suffix="-qa"
-          service="backend-qa"
-          mongo_uri="${{ secrets.QA_MONGO_URI }}"
-        else
-          suffix="-preprod"
-          service="backend-preprod"
-          mongo_uri="${{ secrets.MONGO_URI_PREPROD }}"
-        fi
-        tag="gcr.io/${{ secrets.GCP_PROJECT_ID }}/${service}:${GITHUB_SHA}"
-        echo "Service name: $service"
-        echo "Tag: $tag"
-        echo "suffix=${suffix}" >> $GITHUB_ENV
-        echo "service=${service}" >> $GITHUB_ENV
-        echo "tag=${tag}" >> $GITHUB_ENV
-        echo "mongo_uri=${mongo_uri}" >> $GITHUB_ENV
+      - name: Determine suffix, tag, and service name
+        run: |
+          echo "Branch Ref: ${{ github.ref }}"
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            suffix=""
+            service="backend"
+            mongo_uri="${{ secrets.MONGO_URI }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/dev" ]]; then
+            suffix="-dev"
+            service="backend-dev"
+            mongo_uri="${{ secrets.DEV_MONGO_URI }}"
+          elif [[ "${{ github.ref }}" == "refs/heads/QA" ]]; then
+            suffix="-qa"
+            service="backend-qa"
+            mongo_uri="${{ secrets.QA_MONGO_URI }}"
+          else
+            suffix="-preprod"
+            service="backend-preprod"
+            mongo_uri="${{ secrets.MONGO_URI_PREPROD }}"
+          fi
+          tag="gcr.io/${{ secrets.GCP_PROJECT_ID }}/${service}:${GITHUB_SHA}"
+          echo "Service name: $service"
+          echo "Tag: $tag"
+          echo "suffix=${suffix}" >> $GITHUB_ENV
+          echo "service=${service}" >> $GITHUB_ENV
+          echo "tag=${tag}" >> $GITHUB_ENV
+          echo "mongo_uri=${mongo_uri}" >> $GITHUB_ENV
 
-name: Build and push Docker image
-      run: |
-        gcloud builds submit --tag ${{ env.tag }} .
+      - name: Build and push Docker image
+        run: |
+          gcloud builds submit --tag ${{ env.tag }} .
 
-name: Deploy to Cloud Run
-      run: |
-        gcloud run deploy ${{ env.service }} \
-          --image ${{ env.tag }} \
-          --platform managed \
-          --region us-central1 \
-          --allow-unauthenticated \
-          --set-env-vars CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},MONGO_URI=${{ env.mongo_uri }},NODE_ENV=${{ env.service }} \
-          --project ${{ secrets.GCP_PROJECT_ID }}
-
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.service }} \
+            --image ${{ env.tag }} \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},MONGO_URI=${{ env.mongo_uri }},NODE_ENV=${{ env.service }} \
+            --project ${{ secrets.GCP_PROJECT_ID }}
 
 
 

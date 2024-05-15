@@ -5,8 +5,21 @@ const recordSchema = mongoose.Schema({
     filePath: {
         type: String,
         required: true,
-        unique: true,
-        maxLength: 2048
+      
+       
+    },
+    fileLink: {
+        type: String,
+        required: true,
+        
+       
+    },
+
+    fileName: {
+        type: String,
+        required: true,
+       
+       
     },
 
     dialogueId: {

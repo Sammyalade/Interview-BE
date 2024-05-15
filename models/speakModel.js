@@ -6,7 +6,20 @@ const speakSchema = mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        maxLength: 2048
+       
+    },
+    fileLink: {
+        type: String,
+        required: true,
+        unique: true,
+       
+    },
+
+    fileName: {
+        type: String,
+        required: true,
+        unique: true,
+       
     },
 
     dialogueId: {

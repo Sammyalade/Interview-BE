@@ -8,6 +8,9 @@ const {
   skipTask,
   getMeter,
   saveGeneratedFileInfo,
+  getDialogue,
+  getOratory,
+  getallRecording
 } = require("../controllers/taskController");
 const protect = require("../middleWare/authMiddleware");
 
@@ -24,4 +27,9 @@ router.post("/speak", upload.single("file"), uploadToGCS, saveSpeak);
 router.post("/skip", protect, skipTask);
 router.get("/meter/:userId", protect, getMeter);
 
+router.get("/mosesdialogue/", getDialogue);
+router.get("/mosesoratory/", getOratory);
+router.get("mosesallcsv", getallRecording);
+
 module.exports = router;
+

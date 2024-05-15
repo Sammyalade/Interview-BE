@@ -194,7 +194,7 @@ const fetchTasks = await Promise.all(userTaskWithTaskStages.map(async (item) => 
   }
 }));
 
-console.log(fetchTasks);
+
 // Combine fetched tasks with their corresponding task stages
 const tasksWithTaskStages = fetchTasks.map((task, index) => ({
   ...task,
@@ -382,11 +382,11 @@ const getSingleTask = asyncHandler(async (req, res) => {
 
     // Extract the subDialogueId from the last undone task
     const resultId = result.subDialogueId || result.oratoryId;
-    console.log(result);
+   
     
     let taskResult, subDialogueId, oratoryId;
     
-    if (result.type === "Dialogue") {
+    if (result.type === "Dialogue" || result.type === "dialogue") {
         // Query subDialogue using the extracted subDialogueId
         taskResult = await subDialogue.findOne({ _id: resultId });
         if (taskResult) {
@@ -395,13 +395,13 @@ const getSingleTask = asyncHandler(async (req, res) => {
         } else {
             console.log("No task result found for dialogue type.");
         }
-    } else if (result.type === "Oratory") {
+    } else if (result.type === "Oratory" || result.type === "oratory") {
         // Query Oratory using the extracted oratoryId
         taskResult = await Oratory.findOne({ _id: resultId });
         if (taskResult) {
             oratoryId = taskResult._id;
             subDialogueId = null;
-            console.log(`Task result: ${taskResult}`);
+            // console.log(`Task result: ${taskResult}`);
         } else {
             console.log("No task result found for oratory type.");
         }

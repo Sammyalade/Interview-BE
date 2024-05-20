@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { DIALOGUE } = require("../utils/constant");
 
 const subDialogueSchema = mongoose.Schema({
 
@@ -13,7 +14,7 @@ const subDialogueSchema = mongoose.Schema({
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included "],
-        ref: "dialogue"
+        ref: DIALOGUE
     },
     
     scenario: {

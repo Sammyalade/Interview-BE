@@ -1,4 +1,6 @@
 const mongoose = require('mongoose');
+const { ORATORY, DIALOGUE } = require('../utils/constant');
+
 
 const recordSchema = mongoose.Schema({
    
@@ -25,7 +27,7 @@ const recordSchema = mongoose.Schema({
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [false, "id not included"],
-        ref: "dialogue"
+        ref: DIALOGUE
     },
 
     subDialogueId: {
@@ -37,7 +39,7 @@ const recordSchema = mongoose.Schema({
     oratoryId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [false, "id not included "],
-        ref: "oratory"
+        ref: ORATORY
     },
 
     userId: {

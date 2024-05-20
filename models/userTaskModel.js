@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { DIALOGUE, ORATORY } = require('../utils/constant');
 
 const userTaskSchema = mongoose.Schema({
     taskStatus: {
@@ -24,7 +25,7 @@ const userTaskSchema = mongoose.Schema({
     oratoryId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [false, "id not included "],
-        ref: "oratory"
+        ref: ORATORY
     },
     userId: {
         type: mongoose.Schema.Types.ObjectId,
@@ -34,7 +35,7 @@ const userTaskSchema = mongoose.Schema({
     type: {
         type: String,
         required: true,
-        default: "dialogue"
+        default: DIALOGUE
     }
 }, { timestamps: true })
 

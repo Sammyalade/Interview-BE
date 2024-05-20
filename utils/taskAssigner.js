@@ -5,6 +5,7 @@ const Oratory = require("../models/oratoryModel");
 const userTask = require("../models/userTaskModel");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
+const { DIALOGUE, ORATORY } = require("./constant");
 
 const taskAssigner = async (numToAssign, userId) => {
   const dialogueAssigner = async (numToAssign, userId) => {
@@ -43,7 +44,8 @@ const taskAssigner = async (numToAssign, userId) => {
           taskStatus: "Undone",
           subDialogueId: subDialogueItem._id,
           userId: userId, // Replace with the actual user ID
-          type: "dialogue",
+          // type: "dialogue",
+          type: DIALOGUE,
         });
 
         // Assign task or skip based on the alternating assign status
@@ -61,14 +63,14 @@ const taskAssigner = async (numToAssign, userId) => {
       if (existingTask) {
         // If the user already has a task assigned, update its status to true
         existingTask.status = true;
-        existingTask.taskType = "Dialogue";
+        existingTask.taskType = DIALOGUE;
         await existingTask.save();
       } else {
         // If the user does not have a task assigned, insert a new document
         const newTask = new DAstatus({
           userId: userId,
           status: true,
-          taskType: "Dialogue",
+          taskType: DIALOGUE,
         });
         await newTask.save();
       }
@@ -100,7 +102,7 @@ const taskAssigner = async (numToAssign, userId) => {
           taskStatus: "Undone",
           oratoryId: oratoryItem._id,
           userId: userId,
-          type: "Oratory",
+          type: ORATORY,
         });
 
         try {
@@ -124,14 +126,14 @@ const taskAssigner = async (numToAssign, userId) => {
       if (existingTask) {
         // If the user already has a task assigned, update its status to true
         existingTask.status = true;
-        existingTask.taskType = "Oratory";
+        existingTask.taskType = ORATORY;
         await existingTask.save();
       } else {
         // If the user does not have a task assigned, insert a new document
         const newTask = new DAstatus({
           userId: userId,
           status: true,
-          taskType: "Oratory",
+          taskType: ORATORY,
         });
         await newTask.save();
       }
@@ -152,7 +154,7 @@ const taskAssigner = async (numToAssign, userId) => {
     const taskType = foundDaStatus.taskType;
 
     // Check the taskType and decide whether to assign dialogue or oratory tasks
-    if (taskType === "Oratory") {
+    if (taskType === ORATORY) {
       // Assign oratory tasks
       dialogueAssigner(numToAssign, userId);
     } else {

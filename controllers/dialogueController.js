@@ -20,6 +20,7 @@ const getDialogue = asyncHandler(async (req, res) => {
   );
 });
 
+// Move file to DB.
 const createDialogueWithDoc = asyncHandler(async (req, res) => {
   try {
     if (!req.file) {

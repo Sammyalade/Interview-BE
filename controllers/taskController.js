@@ -435,6 +435,8 @@ const getMeter = asyncHandler(async (req, res) => {
   respondsSender(result, "Successful", ResponseCode.successful, res);
 });
 
+
+// Moses work
 const   getDialogue = asyncHandler(async (req, res) => {
 //select all 
   respondsSender(
@@ -444,8 +446,8 @@ const   getDialogue = asyncHandler(async (req, res) => {
     res
   );
 })
-const getOratory =asyncHandler(async (req, res) => {
 
+const getOratory =asyncHandler(async (req, res) => {
   respondsSender(
     null,
     "Display Oratory csv",
@@ -456,7 +458,6 @@ const getOratory =asyncHandler(async (req, res) => {
 })
 
 const getallRecording =asyncHandler(async (req, res) => {
-
   respondsSender(
     null,
     "Display All Oratory and Dialogues csv",

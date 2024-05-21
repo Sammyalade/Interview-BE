@@ -436,6 +436,7 @@ const getMeter = asyncHandler(async (req, res) => {
 });
 
 const   getDialogue = asyncHandler(async (req, res) => {
+//select all 
   respondsSender(
     null,
     "Display Dialog csv",

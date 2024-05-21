@@ -36,6 +36,34 @@ function generateRandomString(length) {
   return result;
 }
 
+//this function isnt a permanent script  it can be writen and rewritten to effect any update on existing collected user data
+
+const runUserUpdate = asynchandler(async (req, res)=>{
+  try {
+    const result = await User.updateMany(
+      { role: { $exists: false } },
+      { $set: { role: 'USER' } }
+    );
+    
+    console.log(`users updated.`);
+     result &&  respondsSender(
+      null,
+      `users updated.`,
+      ResponseCode.successful,
+      res
+    );
+    
+  } catch (error) {
+    result &&  respondsSender(
+      null,
+      `Error: ${error}`,
+      ResponseCode.internalServerError,
+      res
+    );
+  }
+
+})
+
 // Register user
 const registerUser = asynchandler(async (req, res) => {
   try {
@@ -106,6 +134,7 @@ const registerUser = asynchandler(async (req, res) => {
       consent,
       password,
       verified: false,
+      role:"USER"
     });
 
     // User was successfully created, perform your desired action here
@@ -211,8 +240,9 @@ const loginUser = asynchandler(async (req, res) => {
 
   // User exists, check if password is correct
   const passwordIsCorrect = await bcrypt.compare(password, user.password);
-
-  if (user && passwordIsCorrect) {
+  //if user role is a user allow next phase of auth 
+  if (user.role=="USER"){
+    if (user && passwordIsCorrect) {
     if (user.verified == true) {
       //Generate Login Token
       const token = generateToken(user._id);
@@ -295,6 +325,12 @@ const loginUser = asynchandler(async (req, res) => {
   } else {
     respondsSender(null, "Invalid email or Password", ResponseCode.noData, res);
   }
+  }
+  else{
+    //this is not a user but a qa, or others
+     respondsSender(null, "Please only users are allowed here", ResponseCode.unAuthorized, res);
+  }
+  
 });
 
 //Logout User
@@ -681,4 +717,5 @@ module.exports = {
   resetPassword,
   verifyUser,
   getAccent,
+  runUserUpdate,
 };

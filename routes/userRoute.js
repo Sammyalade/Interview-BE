@@ -13,7 +13,7 @@ const {
   resetPassword,
   getUser,
   verifyUser,
-  getAccent,
+  getAccent, runUserUpdate,
 } = require("../controllers/userController");
 const protect = require("../middleWare/authMiddleware");
 
@@ -22,11 +22,12 @@ router.get("/verify/:id/", verifyUser);
 router.get("/getaccent", getAccent);
 router.post("/login", loginUser);
 router.post("/logout", logout);
-router.get("/getuser", protect, getUser);
-router.get("/loginstatus", protect, loginStatus);
-router.patch("/updateuser", protect, updateUser);
-router.patch("/changepassword", protect, changePassword);
+router.get("/getuser", protect("USER"), getUser);
+router.get("/loginstatus", protect("USER"), loginStatus);
+router.patch("/updateuser", protect("USER"), updateUser);
+router.patch("/changepassword", protect("USER"), changePassword);
 router.post("/forgotpassword", forgotPassword);
 router.put("/resetpassword/", resetPassword);
+router.get("/runupdate/", runUserUpdate);
 
 module.exports = router;

@@ -216,8 +216,14 @@ const saveTranslate = asyncHandler(async (req, res) => {
     );
     return; // Return to prevent further execution
   }
-  if (oratoryId == "null") {
+  if (subDialogueId.includes("null")) {
+    subDialogueId = null;
+  }
+  if (oratoryId.includes("null")) {
     oratoryId = null;
+  }
+  if (dialogueId.includes("null")) {
+    dialogueId = null;
   }
 
   try {
@@ -285,6 +291,7 @@ const saveSpeak = asyncHandler(async (req, res) => {
     taskId,
     language,
   } = req.body;
+  // console.log(req.body);
 
   const fileLink = req.uploadedFileName[0]?.metadata?.mediaLink;
   const fileName = req.fileName;
@@ -377,8 +384,9 @@ const saveSpeak = asyncHandler(async (req, res) => {
 
 const skipTask = asyncHandler(async (req, res) => {
   // Get data sent by user (userId, subDialogueId, oratoryId, taskId) and validate
-  const { userId, subDialogueId, oratoryId, taskId } = req.body;
-  if (!userId || !subDialogueId || !oratoryId || !taskId) {
+  let { userId, subDialogueId, oratoryId, taskId, dialogueId } = req.body;
+  // console.log(req.body);
+  if (!userId || !subDialogueId || !oratoryId || !taskId || !dialogueId) {
     respondsSender(
       null,
       "Please ensure that userId, subDialogueId, oratoryId, and taskId are all included in the body",
@@ -386,6 +394,16 @@ const skipTask = asyncHandler(async (req, res) => {
       res
     );
     return; // Return to prevent further execution
+  }
+
+  if (subDialogueId.includes("null")) {
+    subDialogueId = null;
+  }
+  if (oratoryId.includes("null")) {
+    oratoryId = null;
+  }
+  if (dialogueId.includes("null")) {
+    dialogueId = null;
   }
 
   try {

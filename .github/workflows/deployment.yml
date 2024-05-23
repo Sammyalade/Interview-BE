@@ -67,5 +67,5 @@ jobs:
           --platform managed \
           --region us-central1 \
           --allow-unauthenticated \
-          --set-env-vars CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},MONGO_URI=${{ env.mongo_uri }},NODE_ENV=${{ env.environment }},EMAIL_HOST=${{ secrets.EMAIL_HOST }},EMAIL_PASS=${{ secrets.EMAIL_PASS }},EMAIL_USER=${{ secrets.EMAIL_USER }},OLD_FRONTEND_URL=${{ secrets.OLD_FRONTEND_URL }},PROJECT_ID=${{ secrets.PROJECT_ID }},BUCKET_NAME=${{ secrets.BUCKET_NAME }} \
+          --set-env-vars CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},MONGO_URI=${{ env.mongo_uri }},NODE_ENV=${{ env.service }},EMAIL_HOST=${{ secrets.EMAIL_HOST }},EMAIL_PASS=${{ secrets.EMAIL_PASS }},EMAIL_USER=${{ secrets.EMAIL_USER }},OLD_FRONTEND_URL=${{ secrets.OLD_FRONTEND_URL }},PROJECT_ID=${{ secrets.PROJECT_ID }},BUCKET_NAME=${{ secrets.BUCKET_NAME }} \
           --project ${{ secrets.GCP_PROJECT_ID }}

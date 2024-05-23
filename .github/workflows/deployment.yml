@@ -56,12 +56,23 @@ jobs:
         echo "mongo_uri=${mongo_uri}" >> $GITHUB_ENV
         echo "environment=${environment}" >> $GITHUB_ENV
 
+    - name: Debugging Information
+      run: |
+        echo "Debugging Information:"
+        echo "Ref: ${{ github.ref }}"
+        echo "Service: ${{ env.service }}"
+        echo "Tag: ${{ env.tag }}"
+        echo "Mongo URI: ${{ env.mongo_uri }}"
+        echo "Environment: ${{ env.environment }}"
+        echo "Project ID: ${{ secrets.GCP_PROJECT_ID }}"
+
     - name: Build and push Docker image
       run: |
         gcloud builds submit --tag ${{ env.tag }} .
 
     - name: Deploy to Cloud Run
       run: |
+        set -x  # Enable command echoing for debugging
         gcloud run deploy ${{ env.service }} \
           --image ${{ env.tag }} \
           --platform managed \
@@ -69,3 +80,5 @@ jobs:
           --allow-unauthenticated \
           --set-env-vars CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},MONGO_URI=${{ env.mongo_uri }},NODE_ENV=${{ env.service }},EMAIL_HOST=${{ secrets.EMAIL_HOST }},EMAIL_PASS=${{ secrets.EMAIL_PASS }},EMAIL_USER=${{ secrets.EMAIL_USER }},OLD_FRONTEND_URL=${{ secrets.OLD_FRONTEND_URL }},PROJECT_ID=${{ secrets.PROJECT_ID }},BUCKET_NAME=${{ secrets.BUCKET_NAME }} \
           --project ${{ secrets.GCP_PROJECT_ID }}
+        set +x  # Disable command echoing
+

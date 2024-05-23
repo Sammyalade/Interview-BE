@@ -1,13 +1,13 @@
 const asyncHandler = require("express-async-handler");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
-
 const Dialogue = require("../models/dialogueModel");
 const subDialogue = require("../models/subDialogueModel");
 const Translate = require("../models/translateModel");
 const Speak = require("../models/speakModel");
 const Record = require("../models/recordModel");
 const UserTask = require("../models/userTaskModel");
+const Oratory = require("../models/oratoryModel");
 
 const saveGeneratedFileInfo = asyncHandler(async (req, res) => {
   // Access filePath and other from the request object
@@ -94,41 +94,60 @@ const test = asyncHandler(async (req, res) => {
 
 const saveRecording = asyncHandler(async (req, res) => {
   // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, filePath) and validate
-  const { userId, subDialogueId, dialogueId, taskStage, taskId } = req.body;
-  const filePath = req.uploadedFileName[0]?.metadata?.mediaLink;
+  let { userId, subDialogueId, dialogueId, taskStage, taskId, oratoryId } =
+    req.body;
+  
+  const fileLink = req.uploadedFileName[0]?.metadata?.mediaLink;
+  const fileName= req.fileName;
+  const filePath= req.filePath;
 
   if (
     !userId ||
     !subDialogueId ||
     !dialogueId ||
+    !oratoryId ||
     !taskStage ||
     !taskId ||
-    !filePath
+    !fileLink
   ) {
     respondsSender(
       null,
-      "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, file (recorded or spoken file) and task(task type e.g record, speak ) are all included in the body",
+      "Please ensure that userId, subdialogueId, dialogueId, oratoryId, taskStage, taskId, file (recorded or spoken file) and task(task type e.g record, speak ) are all included in the body",
       ResponseCode.badRequest,
       res
     );
     return; // Return to prevent further execution
   }
 
+  if (subDialogueId.includes("null")) {
+    subDialogueId = null;
+  }
+  if (oratoryId.includes("null")) {
+    oratoryId = null;
+  }
+  if (dialogueId.includes("null")) {
+    dialogueId = null;
+  }
+ 
   try {
     // Save the recording data
     const Recording = await Record.create({
       userId,
       subDialogueId,
       dialogueId,
+      oratoryId,
       filePath,
+      fileLink,
+      fileName 
     });
 
     // Check if the recording was created successfully
     if (Recording) {
       // Update user task stage
       const newTaskStage = Number(taskStage) + 1;
+      
       const userTask = await UserTask.findById(taskId);
-
+        
       if (userTask) {
         // Update the task stage
         userTask.taskStage = newTaskStage;
@@ -167,20 +186,23 @@ const saveRecording = asyncHandler(async (req, res) => {
 });
 
 const saveTranslate = asyncHandler(async (req, res) => {
-  // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, translateText) and validate
+  // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, oratoryId, translateText) and validate
   const {
     userId,
     subDialogueId,
     dialogueId,
+    oratoryId,
     taskStage,
     taskId,
     translateText,
     language,
   } = req.body;
+
   if (
     !userId ||
     !subDialogueId ||
     !dialogueId ||
+    !oratoryId ||
     !taskStage ||
     !taskId ||
     !translateText ||
@@ -201,6 +223,7 @@ const saveTranslate = asyncHandler(async (req, res) => {
       userId,
       subDialogueId,
       dialogueId,
+      oratoryId,
       translateText,
       language,
     });
@@ -247,16 +270,25 @@ const saveTranslate = asyncHandler(async (req, res) => {
     );
   }
 });
+
 const saveSpeak = asyncHandler(async (req, res) => {
   // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, filePath) and validate
-  const { userId, subDialogueId, dialogueId, taskStage, taskId, language } =
-    req.body;
+  const {
+    userId,
+    subDialogueId,
+    dialogueId,
+    oratoryId,
+    taskStage,
+    taskId,
+    language,
+  } = req.body;
   const filePath = req.uploadedFileName[0]?.metadata?.mediaLink;
 
   if (
     !userId ||
     !subDialogueId ||
     !dialogueId ||
+    !oratoryId ||
     !taskStage ||
     !taskId ||
     !filePath ||
@@ -277,6 +309,7 @@ const saveSpeak = asyncHandler(async (req, res) => {
       userId,
       subDialogueId,
       dialogueId,
+      oratoryId,
       filePath,
       language,
     });
@@ -326,12 +359,12 @@ const saveSpeak = asyncHandler(async (req, res) => {
 });
 
 const skipTask = asyncHandler(async (req, res) => {
-  // Get data sent by user (userId, subDialogueId, taskId) and validate
-  const { userId, subDialogueId, taskId } = req.body;
-  if (!userId || !subDialogueId || !taskId) {
+  // Get data sent by user (userId, subDialogueId, oratoryId, taskId) and validate
+  const { userId, subDialogueId, oratoryId, taskId } = req.body;
+  if (!userId || !subDialogueId || !oratoryId || !taskId) {
     respondsSender(
       null,
-      "Please ensure that userId, subDialogueId, and taskId are all included in the body",
+      "Please ensure that userId, subDialogueId, oratoryId, and taskId are all included in the body",
       ResponseCode.badRequest,
       res
     );
@@ -340,14 +373,20 @@ const skipTask = asyncHandler(async (req, res) => {
 
   try {
     // Update subDialogue status to skipped
-    const fetchUserSubDialogue = await subDialogue.findById(subDialogueId);
-    if (fetchUserSubDialogue) {
-      fetchUserSubDialogue.skippedStatus = true;
-      await fetchUserSubDialogue.save();
+    let fetchSkippedTask;
+    if(subDialogueId!==null){
+     fetchSkippedTask = await subDialogue.findById(subDialogueId);
+    }else{
+      fetchSkippedTask = await Oratory.findById(oratoryId);
+
+    }
+    if (fetchSkippedTask) {
+      fetchSkippedTask.skippedStatus = true;
+      await fetchSkippedTask.save();
     } else {
       respondsSender(
         null,
-        "SubDialogue not found",
+        "Task not found",
         ResponseCode.badRequest,
         res
       );
@@ -397,6 +436,38 @@ const getMeter = asyncHandler(async (req, res) => {
 });
 
 
+// Moses work
+const   getDialogue = asyncHandler(async (req, res) => {
+//select all 
+  respondsSender(
+    null,
+    "Display Dialog csv",
+    ResponseCode.successful,
+    res
+  );
+})
+
+const getOratory =asyncHandler(async (req, res) => {
+  respondsSender(
+    null,
+    "Display Oratory csv",
+    ResponseCode.successful,
+    res
+  );
+
+})
+
+const getallRecording =asyncHandler(async (req, res) => {
+  respondsSender(
+    null,
+    "Display All Oratory and Dialogues csv",
+    ResponseCode.successful,
+    res
+  );
+
+})
+
+
 module.exports = {
   saveRecording,
   saveTranslate,
@@ -405,4 +476,7 @@ module.exports = {
   test,
   getMeter,
   saveGeneratedFileInfo,
+  getDialogue,
+  getOratory,
+  getallRecording
 };

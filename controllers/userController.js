@@ -1,8 +1,9 @@
 const asynchandler = require("express-async-handler");
 const User = require("../models/userModel");
-const daStatus = require("../models/dAssignmentStatus");
+const DAstatus = require("../models/dAssignmentStatus");
 const Token = require("../models/tokenModel");
 const subDialogue = require("../models/subDialogueModel");
+const Oratory = require("../models/oratoryModel");
 const userTask = require("../models/userTaskModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
@@ -12,6 +13,7 @@ const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
+const taskAssigner = require('../utils/taskAssigner')
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -33,6 +35,34 @@ function generateRandomString(length) {
   }
   return result;
 }
+
+//this function isnt a permanent script  it can be writen and rewritten to effect any update on existing collected user data
+
+const runUserUpdate = asynchandler(async (req, res)=>{
+  try {
+    const result = await User.updateMany(
+      { role: { $exists: false } },
+      { $set: { role: 'USER' } }
+    );
+    
+    console.log(`users updated.`);
+     result &&  respondsSender(
+      null,
+      `users updated.`,
+      ResponseCode.successful,
+      res
+    );
+    
+  } catch (error) {
+    result &&  respondsSender(
+      null,
+      `Error: ${error}`,
+      ResponseCode.internalServerError,
+      res
+    );
+  }
+
+})
 
 // Register user
 const registerUser = asynchandler(async (req, res) => {
@@ -104,6 +134,7 @@ const registerUser = asynchandler(async (req, res) => {
       consent,
       password,
       verified: false,
+      role:"USER"
     });
 
     // User was successfully created, perform your desired action here
@@ -209,8 +240,9 @@ const loginUser = asynchandler(async (req, res) => {
 
   // User exists, check if password is correct
   const passwordIsCorrect = await bcrypt.compare(password, user.password);
-
-  if (user && passwordIsCorrect) {
+  //if user role is a user allow next phase of auth 
+  if (user.role=="USER"){
+    if (user && passwordIsCorrect) {
     if (user.verified == true) {
       //Generate Login Token
       const token = generateToken(user._id);
@@ -240,80 +272,43 @@ const loginUser = asynchandler(async (req, res) => {
       };
 
       // Check Tasks
-      const foundDaStatus = await daStatus.findOne({
+      const foundDaStatus = await DAstatus.findOne({
         userId: user._id,
         status: true,
       });
 
+      const numToAssign = 10;
       if (!foundDaStatus) {
-        const numToAssign = 10;
-        try {
-          // Retrieve all subDialogues from the database where assignmentStatus is false
-          const allSubDialogues = await subDialogue
-            .find({ assignmentStatus: false })
-            .limit(numToAssign * 2);
-
-          //check number of retrieved subDialogu
-          const numOfAllSubDialog = allSubDialogues.length;
-          // Initialize an array to store the selected subDialogues
-          const selectedSubDialogues = [];
-
-          //share dialogue evenly if all dialogus is more than what is to be share else dont evenly share
-          if (numOfAllSubDialog > numToAssign) {
-            for (let i = 1; i <= allSubDialogues.length; i += 2) {
-              selectedSubDialogues.push(allSubDialogues[i]);
-            }
-          } else {
-            for (let i = 1; i <= allSubDialogues.length; i++) {
-              selectedSubDialogues.push(allSubDialogues[i]);
-            }
-          }
-
-          // Initialize a variable to keep track of the alternating assignment status
-          let assign = true;
-          // Iterate over the selected subDialogues
-          for (let i = 0; i < selectedSubDialogues.length; i++) {
-            const subDialogueItem = selectedSubDialogues[i];
-
-            // Create a new user task
-            const newUserTask = new userTask({
-              taskStatus: "Undone",
-              subDialogueId: subDialogueItem._id,
-              userId: user._id, // Replace with the actual user ID
-              type: "dialogue",
-            });
-
-            // Assign task or skip based on the alternating assign status
-            if (assign) {
-              await newUserTask.save();
-              // Update the assignmentStatus of the subDialogueItem
-              await subDialogue.findByIdAndUpdate(subDialogueItem._id, {
-                assignmentStatus: true,
-              });
-            }
-          }
-
-          //check if user id exits in dialogue task table and assigned a task, if not insert or update user task status true
-          const existingTask = await daStatus.findOne({ userId: user._id });
-          if (existingTask) {
-            // If the user already has a task assigned, update its status to true
-            existingTask.status = true;
-            await existingTask.save();
-          } else {
-            // If the user does not have a task assigned, insert a new document
-            const newTask = new daStatus({
-              userId: user._id,
-              status: true,
-            });
-            await newTask.save();
-          }
-
-          // respondsSender(selectedSubDialogues, "User tasks created successfully!", ResponseCode.successful, res);
-        } catch (error) {
-          // respondsSender(error, "Error creating user tasks", ResponseCode.internalServerError, res);
-        }
+        // Assign Dialogue Tasks 
+       taskAssigner(numToAssign, user._id)
+     
       } else {
-        // respondsSender(null, "User tasks already exist", ResponseCode.badRequest, res);
+        // check if user has finished task assigned to them, and assign new task
+        //fecth user task where status is undone,
+        
+        try {
+          // Query userTasks to find undone tasks for the user
+          const userTasks = await userTask.find({
+            userId: user._id,
+            taskStatus: "Undone",
+          }); // Assuming taskStatus field indicates the status of the task
+
+          // If there are no undone tasks found for the user, return an appropriate response
+          if (userTasks.length === 0) {
+            //check the last assigned task and assign new task (dialog or oratory)
+            taskAssigner(numToAssign, user._id)
+          }
+        } catch (error) {
+          // Handle errors
+          console.error("Error fetching user tasks:", error);
+
+          respondsSender(
+            error.message,
+            null,
+            ResponseCode.internalServerError,
+            res
+          ); // Pass internal server error status code
+        }
       }
 
       respondsSender(data, "Login successful", ResponseCode.successful, res);
@@ -330,6 +325,12 @@ const loginUser = asynchandler(async (req, res) => {
   } else {
     respondsSender(null, "Invalid email or Password", ResponseCode.noData, res);
   }
+  }
+  else{
+    //this is not a user but a qa, or others
+     respondsSender(null, "Please only users are allowed here", ResponseCode.unAuthorized, res);
+  }
+  
 });
 
 //Logout User
@@ -716,4 +717,5 @@ module.exports = {
   resetPassword,
   verifyUser,
   getAccent,
+  runUserUpdate,
 };

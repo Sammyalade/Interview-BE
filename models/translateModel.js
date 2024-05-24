@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { DIALOGUE, ORATORY } = require('../utils/constant');
 
 const translateSchema = mongoose.Schema({
     
@@ -8,14 +9,20 @@ const translateSchema = mongoose.Schema({
 
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included"],
-        ref: "dialogue"
+        required: [false, "id not included"],
+        ref: DIALOGUE
     },
 
     subDialogueId: {
         type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included"],
+        required: [false, "id not included"],
         ref: "subDialogue"
+    },
+
+    oratoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: [false, "id not included"],
+        ref: ORATORY
     },
 
     userId: {
@@ -27,7 +34,7 @@ const translateSchema = mongoose.Schema({
         require:true,
         type:String
     }
-});
+}, { timestamps: true });
 
 const Translate = mongoose.model("Translate", translateSchema);
 

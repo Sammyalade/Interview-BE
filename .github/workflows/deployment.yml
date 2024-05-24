@@ -70,4 +70,3 @@ jobs:
             --region us-central1 \
             --allow-unauthenticated \
             --set-env-vars "CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }},FRONTEND_URL=${{ secrets.FRONTEND_URL }},EMAIL_HOST=${{ secrets.EMAIL_HOST }},EMAIL_PASS=${{ secrets.EMAIL_PASS }},EMAIL_USER=${{ secrets.EMAIL_USER }},BUCKET_NAME=${{ secrets.BUCKET_NAME }},JWT_SECRET=${{ secrets.JWT_SECRET }},MONGO_URI=${{ env.mongo_uri }},ENVIRONMENT=${{ env.environment }}"
-

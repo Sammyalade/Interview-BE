@@ -46,6 +46,6 @@ const taskQueuesSchema = mongoose.Schema({
 { timestamps: true }
 );
 
-const TaskQueuesStatus = mongoose.model("TaskQueuesStatus", taskQueuesSchema);
+const TaskQueues = mongoose.model("TaskQueuesStatus", taskQueuesSchema);
 
-module.exports = TaskQueuesStatus;
+module.exports = TaskQueues;

@@ -148,7 +148,7 @@ const taskAssigner = async (numToAssign, userId) => {
 
   // Check if a document for the user is found
   if (foundDaStatus) {
-    console.log(`User found: ${userId}`);
+    // console.log(`User found: ${userId}`);
 
     // Access taskType property of the found document
     const taskType = foundDaStatus.taskType;

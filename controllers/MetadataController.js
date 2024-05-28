@@ -159,6 +159,9 @@ const reducedData = data.map(item => {
   const domain = item.dialogue ? item.dialogue.domain : null;
   const scenario = item.dialogue ? item.dialogue.scenario : null;
 
+  const newFilePath = `${filePath}${fileName}`
+
+
   const {
     firstname,
     lastname,
@@ -171,8 +174,8 @@ const reducedData = data.map(item => {
 
   return {
     fileId: _id,
-    filePath,
-    fileLink,
+    filePath: newFilePath,
+    // fileLink,
     fileName,
     dialogueId,
     subDialogueId,
@@ -199,7 +202,7 @@ return reducedData;
   const fields = [
     'fileId',
     'filePath',
-    'fileLink',
+    // 'fileLink',
     'fileName',
     'dialogueId',
     'subDialogueId',

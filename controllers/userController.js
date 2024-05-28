@@ -14,6 +14,7 @@ const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
 const taskAssigner = require('../utils/taskAssigner')
+const {accents}= require('../utils/allAccents')
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -619,90 +620,8 @@ const resetPassword = asynchandler(async (req, res) => {
 
 // Get Accent of User
 const getAccent = asynchandler(async (req, res) => {
-  const allAccents = [
-    "Yoruba",
-    "Hausa",
-    "Igbo",
-    "Ijaw",
-    "Idoma",
-    "Igala",
-    "Izon",
-    "Ebira",
-    "Urhobo",
-    "Nembe",
-    "Ibibio",
-    "Pidgin",
-    "Esan",
-    "Alago",
-    "Fulani",
-    "Isoko",
-    "Ikwere",
-    "Efik",
-    "Edo",
-    "Bekwarra",
-    "Hausa/Fulani",
-    "Epie",
-    "Nupe",
-    "Anaang",
-    "English",
-    "Afemai",
-    "Eggon",
-    "Ukwuani",
-    "Benin",
-    "Kagoma",
-    "Nasarawa Eggon",
-    "Tiv",
-    "Ogoni",
-    "Mada",
-    "Bette",
-    "Berom",
-    "Bini",
-    "Ngas",
-    "Etsako",
-    "Okrika",
-    "Damara",
-    "Kanuri",
-    "Itsekiri",
-    "Ekpeye",
-    "Mwaghavul",
-    "Bajju",
-    "Ekene",
-    "Jaba",
-    "Ika",
-    "Angas",
-    "Brass",
-    "Ikulu",
-    "Eleme",
-    "Oklo",
-    "Agatu",
-    "Okirika",
-    "Igarra",
-    "Ijaw(nembe)",
-    "Khana",
-    "Ogbia",
-    "Gbagyi",
-    "Delta",
-    "Bassa",
-    "Etche",
-    "Kubi",
-    "Jukun",
-    "Urobo",
-    "Kalabari",
-    "Ibani",
-    "Obolo",
-    "Idah",
-    "Bassa-nge/nupe",
-    "Yala mbembe",
-    "Eket",
-    "Afo",
-    "Ebiobo",
-    "Nyandang",
-    "Ishan",
-    "Bagi",
-    "Estako",
-    "Gerawa",
-  ];
-  respondsSender(allAccents, "Successful", ResponseCode.successful, res);
+//  const allAccents
+  respondsSender(accents, "Successful", ResponseCode.successful, res);
 });
 
 const registerNoneUser= ()=>{

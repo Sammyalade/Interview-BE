@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const userRoute = require("./routes/userRoute");
+const authRoute = require("./routes/authRoute");
 const audioRoute = require("./routes/audioRoute");
 const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
@@ -43,6 +44,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //Route Middleware
 app.use("/api/users", userRoute);
+app.use("/api/auth", authRoute);
 app.use("/api/audio", audioRoute);
 app.use("/api/word", wordBankRoute);
 app.use("/api/contactus", contactRoute);

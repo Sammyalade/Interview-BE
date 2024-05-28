@@ -705,6 +705,11 @@ const getAccent = asynchandler(async (req, res) => {
   respondsSender(allAccents, "Successful", ResponseCode.successful, res);
 });
 
+const registerNoneUser= ()=>{
+  //collect values from body which inclues role (Ano)
+
+}
+
 module.exports = {
   registerUser,
   loginUser,
@@ -718,4 +723,5 @@ module.exports = {
   verifyUser,
   getAccent,
   runUserUpdate,
+  registerNoneUser,
 };

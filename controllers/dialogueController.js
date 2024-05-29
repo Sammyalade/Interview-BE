@@ -375,9 +375,14 @@ const getSingleTask = asyncHandler(async (req, res) => {
 
       //assign new Task of either oratory or sub dialog base on previous assignment
       taskAssigner(numToAssign, userId);
+
+      const currentDateTime = new Date();
+      const formattedDateTime = currentDateTime.toLocaleString();
+      const responseMessage = `Congratulations Task completed at ${formattedDateTime}!\nKindly Logout and Login to get assigned new Task`;
+
       return respondsSender(
         null,
-        "Congratulations Task completed!",
+        responseMessage,
         ResponseCode.requestUnavailable,
         res
       );

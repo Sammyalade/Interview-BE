@@ -10,7 +10,7 @@ const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
 const metadataRoute = require("./routes/metadataRoute");
-const adminRoute = require("./routes/adminRoute")
+const adminRoute = require("./routes/adminRoute");
 
 const feedbackRoute = require("./routes/feedbackRoute");
 const taskRoute = require("./routes/taskRoute");
@@ -90,7 +90,7 @@ app.get("/", (req, res) => {
 //Error MiddleWare
 app.use(errorHandler);
 //connect to DB and start Server
-const PORT = process.env.PORT || 5177;
+const PORT = process.env.PORT || 4000;
 // mongoose.set('debug', true);
 mongoose
   .connect(process.env.MONGO_URI)

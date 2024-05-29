@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { DIALOGUE } = require("../utils/constant");
 
 const subDialogueSchema = mongoose.Schema({
 
@@ -10,12 +11,10 @@ const subDialogueSchema = mongoose.Schema({
         type: String,
         required: false
     },
-
-
     dialogueId: {
         type: mongoose.Schema.Types.ObjectId,
         required: [true, "id not included "],
-        ref: "dialogue"
+        ref: DIALOGUE
     },
     
     scenario: {
@@ -33,7 +32,7 @@ const subDialogueSchema = mongoose.Schema({
         required: true,
         default: false
     }
-});
+}, { timestamps: true });
 
 const SubDialogue = mongoose.model("SubDialogue", subDialogueSchema);
 

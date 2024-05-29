@@ -4,11 +4,13 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const userRoute = require("./routes/userRoute");
+const authRoute = require("./routes/authRoute");
 const audioRoute = require("./routes/audioRoute");
 const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
 const metadataRoute = require("./routes/metadataRoute");
+const adminRoute = require("./routes/adminRoute")
 
 const feedbackRoute = require("./routes/feedbackRoute");
 const taskRoute = require("./routes/taskRoute");
@@ -42,13 +44,15 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //Route Middleware
 app.use("/api/users", userRoute);
+app.use("/api/auth", authRoute);
 app.use("/api/audio", audioRoute);
 app.use("/api/word", wordBankRoute);
 app.use("/api/contactus", contactRoute);
 app.use("/api/feedback", feedbackRoute);
 app.use("/api/dialogue", dialogueRoute);
-app.use("/api/metadataGenerator", metadataRoute);
 app.use("/api/task", taskRoute);
+app.use("/api/metadataGenerator", metadataRoute);
+app.use("/api/admin", adminRoute);
 
 // Routes
 app.get("/", (req, res) => {

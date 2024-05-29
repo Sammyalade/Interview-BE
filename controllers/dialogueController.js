@@ -378,7 +378,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
 
       const currentDateTime = new Date();
       const formattedDateTime = currentDateTime.toLocaleString();
-      const responseMessage = `Congratulations Task completed at ${formattedDateTime}! Please Logout and Login to get assigned new Task`;
+      const responseMessage = `Congratulations Task completed at ${formattedDateTime}!\nKindly Logout and Login to get assigned new Task`;
 
       return respondsSender(
         null,

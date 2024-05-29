@@ -38,15 +38,43 @@ const getSpokenDialogue = asyncHandler(async (req, res) => {
     const records = await Speak.find();
 
     const processedRecords = await processRecords(records);
+    // console.log("processed Record for speak >>>>>", processedRecords);
 
     const reducedProcessedData = arrayReducer(processedRecords);
-    // console.log("reducedData >>>>>", reducedProcessedData);
+
     //convert reponse to csv
     const csv = await csvWriter(reducedProcessedData);
 
     res.header("Content-Type", "text/csv");
     res.attachment(
       `${Math.floor(Math.random() * 10000000)}_speak_metadata.csv`
+    );
+    return res.send(csv);
+  } catch (error) {
+    console.error("Error processing records:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while processing records",
+      error: error.message,
+    });
+  }
+});
+
+const getTranslatedText = asyncHandler(async (req, res) => {
+  try {
+    const records = await Translate.find();
+
+    const processedRecords = await processRecords(records);
+    // console.log("processed Record for Translate >>>>>", processedRecords);
+
+    const reducedProcessedData = arrayReducer(processedRecords);
+
+    //convert reponse to csv
+    const csv = await csvWriter(reducedProcessedData);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment(
+      `${Math.floor(Math.random() * 10000000)}_translate_metadata.csv`
     );
     return res.send(csv);
   } catch (error) {
@@ -138,13 +166,15 @@ const arrayReducer = (data) => {
   const reducedData = data.map((item) => {
     const {
       _id,
-      filePath,
+      filePath, //destructure filepath if it exist in item doc.
       // fileLink,
       fileName,
       dialogueId,
       subDialogueId,
       oratoryId,
       userId,
+      language,
+      translateText,
     } = item._doc;
     // console.log("item Doc >>>>", item._doc);
 
@@ -158,7 +188,7 @@ const arrayReducer = (data) => {
     const domain = item.dialogue ? item.dialogue.domain : null;
     const scenario = item.dialogue ? item.dialogue.scenario : null;
 
-    const newFilePath = `${filePath}${fileName}`;
+    const newFilePath = filePath ? `${filePath}${fileName}` : "";
 
     const {
       firstname,
@@ -169,9 +199,6 @@ const arrayReducer = (data) => {
       accent,
       // language,
     } = item.user;
-    // console.log("accent >>>", accent);
-    // console.log("language >>>", language);
-    // console.log("User records", item.user);
 
     const convertedDOB = calculateAge(dateOfBirth); //Convert the date of birth to user's age
 
@@ -179,12 +206,14 @@ const arrayReducer = (data) => {
       fileId: _id,
       filePath: newFilePath,
       // fileLink,
-      fileName,
+      fileName: fileName || "",
       dialogueId,
       subDialogueId,
       oratoryId,
       userId,
       text,
+      audioLanguage: language,
+      translatedText: translateText,
       identifier,
       DialogueTitle,
       domain,
@@ -193,9 +222,8 @@ const arrayReducer = (data) => {
       userLastname: lastname,
       userEmail: email,
       userGender: gender,
-      userDateOfBirth: dateOfBirth,
+      userDateOfBirth: convertedDOB,
       userAccent: accent,
-      // userlanguage: language,
     };
   });
   return reducedData;
@@ -205,13 +233,15 @@ const csvWriter = async (data) => {
   const fields = [
     "fileId",
     "filePath",
-    "fileLink",
+    // "fileLink",
     "fileName",
     "dialogueId",
     "subDialogueId",
     "oratoryId",
     "userId",
     "text",
+    "audioLanguage",
+    "translatedText",
     "identifier",
     "DialogueTitle",
     "domain",
@@ -222,7 +252,6 @@ const csvWriter = async (data) => {
     "userGender",
     "userDateOfBirth",
     "userAccent",
-    "userLanguage",
   ];
   const json2csvParser = new Parser({ fields });
   const csv = json2csvParser.parse(data);
@@ -234,7 +263,7 @@ const getRecordedDialogue = asyncHandler(async (req, res) => {
     const records = await Record.find();
 
     const processedRecords = await processRecords(records);
-    console.log("Processed Records >>>>", processedRecords);
+    // console.log("Processed Records >>>>", processedRecords);
 
     const reducedProcessedData = arrayReducer(processedRecords);
     //convert reponse to csv
@@ -256,12 +285,39 @@ const getRecordedDialogue = asyncHandler(async (req, res) => {
 });
 
 const getallMetadata = asyncHandler(async (req, res) => {
-  respondsSender(
-    null,
-    "Display All Oratory and Dialogues csv",
-    ResponseCode.successful,
-    res
-  );
+  try {
+    const translateRecords = await Translate.find();
+    const speakRecords = await Speak.find();
+    const recordRecords = await Record.find();
+
+    const processedTranslateRecords = await processRecords(translateRecords);
+    const processedSpeakRecords = await processRecords(speakRecords);
+    const processedRecordRecords = await processRecords(recordRecords);
+
+    // Combine all records into one array
+    const combinedRecords = [
+      ...processedTranslateRecords,
+      ...processedSpeakRecords,
+      ...processedRecordRecords,
+    ];
+    // console.log("all records>>>>>", combinedRecords);
+
+    const reducedProcessedData = arrayReducer(combinedRecords);
+
+    //convert reponse to csv
+    const csv = await csvWriter(reducedProcessedData);
+
+    res.header("Content-Type", "text/csv");
+    res.attachment(`${Math.floor(Math.random() * 10000000)}_all_metadata.csv`);
+    return res.send(csv);
+  } catch (error) {
+    console.error("Error processing records:", error);
+    res.status(500).json({
+      status: "error",
+      message: "An error occurred while processing records",
+      error: error.message,
+    });
+  }
 });
 
 module.exports = {
@@ -270,5 +326,6 @@ module.exports = {
   getSpokenDialogue,
   getRecordedDialogue,
   getallMetadata,
+  getTranslatedText,
   test,
 };

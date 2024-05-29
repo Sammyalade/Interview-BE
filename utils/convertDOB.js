@@ -1,7 +1,6 @@
 function calculateAge(dateOfBirthString) {
-  // Parse the dateOfBirth string (assuming the format is "DD/MM/YYYY")
-  const [day, month, year] = dateOfBirthString.split("/");
-  const dateOfBirth = new Date(year, month - 1, day);
+  // Parse the dateOfBirth string
+  const dateOfBirth = new Date(dateOfBirthString);
 
   // Get the current date
   const currentDate = new Date();
@@ -9,10 +8,10 @@ function calculateAge(dateOfBirthString) {
   // Calculate the age
   let age = currentDate.getFullYear() - dateOfBirth.getFullYear();
   const monthDifference = currentDate.getMonth() - dateOfBirth.getMonth();
-  if (
-    monthDifference < 0 ||
-    (monthDifference === 0 && currentDate.getDate() < dateOfBirth.getDate())
-  ) {
+  const dayDifference = currentDate.getDate() - dateOfBirth.getDate();
+
+  // Adjust age if the current date is before the birth date in the current year
+  if (monthDifference < 0 || (monthDifference === 0 && dayDifference < 0)) {
     age--;
   }
 

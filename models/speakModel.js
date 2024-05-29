@@ -44,7 +44,7 @@ const speakSchema = mongoose.Schema(
       ref: "user",
     },
     language: {
-      require: true,
+      required: true,
       type: String,
     },
   },

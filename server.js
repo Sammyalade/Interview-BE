@@ -16,8 +16,8 @@ const errorHandler = require("./middleWare/errorMiddleware");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
-const multer = require('multer');
-
+const multer = require("multer");
+const { frontEndUrl } = require("./utils/frontEndUrl");
 
 // Set up Multer for file upload
 const storage = multer.memoryStorage();
@@ -50,9 +50,6 @@ app.use("/api/dialogue", dialogueRoute);
 app.use("/api/metadataGenerator", metadataRoute);
 app.use("/api/task", taskRoute);
 
-
-
-
 // Routes
 app.get("/", (req, res) => {
   res.send("Home Page");
@@ -60,6 +57,8 @@ app.get("/", (req, res) => {
 
 // Error Middleware
 app.use(errorHandler);
+// console.log("Environment >>>", process.env.NODE_ENV);
+// console.log(`the current frontend url >>>`, process.env.ENVIRONMENT);
 
 // Start Server - okiki's code
 // const PORT = process.env.PORT || 4000;
@@ -80,10 +79,6 @@ mongoose
   });
 */
 
-
-
-
-
 //Routes
 app.get("/", (req, res) => {
   res.send("Home Page");
@@ -91,12 +86,12 @@ app.get("/", (req, res) => {
 //Error MiddleWare
 app.use(errorHandler);
 //connect to DB and start Server
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5177;
 // mongoose.set('debug', true);
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('DB connected successfully');
+    console.log("DB connected successfully");
     app.listen(PORT, () => {
       console.log(`Server running on Port ${PORT}`);
     });

@@ -2,9 +2,8 @@ const asynchandler = require("express-async-handler");
 const User = require("../models/userModel");
 const DAstatus = require("../models/dAssignmentStatus");
 const Token = require("../models/tokenModel");
-const subDialogue = require("../models/subDialogueModel");
-const Oratory = require("../models/oratoryModel");
-const userTask = require("../models/userTaskModel");
+const AnnotatorAuditorStatus = require("../models/AnnotatorAuditorStatusModel");
+const AuthLoginStatus = require("../models/LoginStatusModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -12,10 +11,9 @@ const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
-const {  frontEndUrl, adminFrontEndUrl } = require("../utils/frontEndUrl");
-const taskAssigner = require('../utils/taskAssigner')
+const {  adminFrontEndUrl } = require("../utils/frontEndUrl");
 const {accents}= require('../utils/allAccents');
-const { ROLE } = require("../utils/constant");
+const { ROLE, USER, DISABLED, ACTIVE, REMOVED } = require("../utils/constant");
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -278,6 +276,27 @@ const loginUser = asynchandler(async (req, res) => {
         },
         token: token,
       };
+
+        //set active status true, set annotatorautdio status model true as well
+      // Find the user by userId and update the status to true
+        const result = await AuthLoginStatus.findOneAndUpdate(
+        { userId: user._id },
+        { status: true },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        if (result) {
+            //add annotator status true if it has not been added
+            const existingStatus = await AnnotatorAuditorStatus.findOne({ userId: user._id });
+
+                if (!existingStatus) {
+                // User does not have a status entry, create one with status active
+                const newStatus = new AnnotatorAuditorStatus({ userId: user._id, status: ACTIVE });
+                await newStatus.save();
+                console.log(`Added annotator status for user ${user._id} as active.`);
+                } 
+        } 
+
 
       respondsSender(data, "Login successful", ResponseCode.successful, res);
     } else {

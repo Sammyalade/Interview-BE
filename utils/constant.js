@@ -9,7 +9,12 @@ const REMOVED = "Removed";
 const UNDONE = "Undone";
 const REJECTED = "Rejected";
 const COMPLETED = "Completed";
-
+const ROLE={
+  USER:"USER",
+  ADMIN:"ADMIN",
+  QA:"QA",
+  ANNOTATOR:"ANNOTATOR",
+}
 module.exports = {
   UNREAD,
   ORATORY,
@@ -21,5 +26,6 @@ module.exports = {
   REMOVED,
   UNDONE,
   REJECTED,
-  COMPLETED
+  COMPLETED,
+  ROLE
 };

@@ -172,7 +172,7 @@ const registerUser = asynchandler(async (req, res) => {
     // Handle any errors that occurred during user registration
     console.error("Error registering user:", error);
     respondsSender(
-      data,
+      null,
       "Registration Failed" + error.message,
       ResponseCode.internalServerError,
       res

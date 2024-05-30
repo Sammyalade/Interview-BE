@@ -9,6 +9,7 @@ const Record = require("../models/recordModel");
 const UserTask = require("../models/userTaskModel");
 const Oratory = require("../models/oratoryModel");
 const { language } = require("googleapis/build/src/apis/language");
+const { DONE } = require("../utils/constant");
 
 const saveGeneratedFileInfo = asyncHandler(async (req, res) => {
   // Access filePath and other from the request object
@@ -456,8 +457,13 @@ const getMeter = asyncHandler(async (req, res) => {
   // Fetch number of all done user tasks.
   const doneTasks = await UserTask.countDocuments({
     userId: userId,
-    taskStatus: "Done",
+    taskStatus: DONE,
   });
+
+  console.log(`UserId: ${userId}`);
+  console.log(`TotalTasks: ${totalTasks}`);
+  console.log(`DoneTasks: ${doneTasks}`);
+
   const result = {
     totalTasks,
     doneTasks,

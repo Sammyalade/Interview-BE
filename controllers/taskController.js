@@ -460,10 +460,6 @@ const getMeter = asyncHandler(async (req, res) => {
     taskStatus: DONE,
   });
 
-  console.log(`UserId: ${userId}`);
-  console.log(`TotalTasks: ${totalTasks}`);
-  console.log(`DoneTasks: ${doneTasks}`);
-
   const result = {
     totalTasks,
     doneTasks,

@@ -16,8 +16,7 @@ const errorHandler = require("./middleWare/errorMiddleware");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
-const multer = require('multer');
-
+const multer = require("multer");
 
 // Set up Multer for file upload
 const storage = multer.memoryStorage();
@@ -50,9 +49,6 @@ app.use("/api/dialogue", dialogueRoute);
 app.use("/api/metadataGenerator", metadataRoute);
 app.use("/api/task", taskRoute);
 
-
-
-
 // Routes
 app.get("/", (req, res) => {
   res.send("Home Page");
@@ -80,10 +76,6 @@ mongoose
   });
 */
 
-
-
-
-
 //Routes
 app.get("/", (req, res) => {
   res.send("Home Page");
@@ -96,7 +88,7 @@ const PORT = process.env.PORT || 4000;
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('DB connected successfully');
+    console.log("DB connected successfully");
     app.listen(PORT, () => {
       console.log(`Server running on Port ${PORT}`);
     });

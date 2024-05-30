@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { ORATORY, DIALOGUE } = require("../utils/constant");
+const { language } = require("googleapis/build/src/apis/language");
 
 const recordSchema = mongoose.Schema(
   {
@@ -42,6 +43,11 @@ const recordSchema = mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       required: [true, "id not included"],
       ref: "user",
+    },
+    language: {
+      type: String,
+      required: false,
+      default: "English",
     },
   },
   { timestamps: true }

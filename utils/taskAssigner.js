@@ -41,7 +41,7 @@ const taskAssigner = async (numToAssign, userId) => {
 
         // Create a new user task
         const newUserTask = new userTask({
-          taskStatus: UNDONE,
+          taskStatus: "Undone",
           subDialogueId: subDialogueItem._id,
           userId: userId, // Replace with the actual user ID
           // type: "dialogue",

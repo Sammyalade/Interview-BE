@@ -1,1 +1,108 @@
 hello this is a test file, rebuild the app
+
+
+const getSingleTask = asyncHandler(async (req, res) => {
+  try {
+    const userId = req.params.userId; // Assuming you get the user ID from the request parameters
+
+    // Query userTasks to find undone tasks for the user, sorted by creation date in descending order
+    const result = await UserTask.findOne({
+      userId,
+      taskStatus: { $nin: [DONE, SKIPPED] },
+    })
+      .sort({ updatedAt: -1 })
+      .limit(1);
+
+    // If there are no undone tasks found for the user, return an appropriate response
+    if (!result) {
+      // Check if user has ever been assigned tasks or not
+      const everAssigned = await DAstatus.findOne({ userId, status: true });
+      if (!everAssigned) {
+        await taskAssigner(numToAssign, userId);
+        return respondsSender(
+          null,
+          "No tasks has been assigned to user.",
+          ResponseCode.requestUnavailable,
+          res
+        );
+      }
+
+      //assign new Task of either oratory or sub dialog base on previous assignment
+      await taskAssigner(numToAssign, userId);
+
+      const currentDateTime = new Date();
+      const formattedDateTime = currentDateTime.toLocaleString();
+      const responseMessage = `Congratulations Task completed at ${formattedDateTime}!\nKindly Logout and Login to get assigned new Task`;
+
+      return respondsSender(
+        null,
+        responseMessage,
+        ResponseCode.requestUnavailable,
+        res
+      );
+    }
+
+    // Extract the subDialogueId from the last undone task
+    const resultId = result.subDialogueId || result.oratoryId;
+
+    let taskResult, subDialogueId, oratoryId;
+
+    // if (result.type === "Dialogue" || result.type === "dialogue") {
+    if (result.type === DIALOGUE) {
+      // Query subDialogue using the extracted subDialogueId
+      taskResult = await subDialogue.findOne({ _id: resultId });
+      if (taskResult) {
+        subDialogueId = taskResult._id;
+        oratoryId = null;
+      } else {
+        console.log("No task result found for dialogue type.");
+      }
+      // } else if (result.type === "Oratory" || result.type === "oratory") {
+    } else if (result.type === ORATORY) {
+      // Query Oratory using the extracted oratoryId
+      taskResult = await Oratory.findOne({ _id: resultId });
+      if (taskResult) {
+        oratoryId = taskResult._id;
+        subDialogueId = null;
+        // console.log(`Task result: ${taskResult}`);
+      } else {
+        console.log("No task result found for oratory type.");
+      }
+    } else {
+      console.log("Unsupported task type.");
+    }
+
+    // If no subDialogue found with the given ID, return an appropriate response
+    if (!taskResult) {
+      return respondsSender(
+        null,
+        "No task found with the given ID",
+        ResponseCode.noData,
+        res
+      );
+    }
+
+    // Prepare the response data
+    const responseData = {
+      text: taskResult.text,
+      subDialogueId,
+      oratoryId,
+      taskId: result._id,
+      taskStage: result.taskStage,
+      taskType: result.type,
+      dialogueId: taskResult.dialogueId || null,
+    };
+
+    // Respond with the prepared data
+    respondsSender(
+      responseData,
+      "Task Retrieved successfully",
+      ResponseCode.successful,
+      res
+    );
+  } catch (error) {
+    // Handle errors
+    console.error("Error fetching user tasks:", error);
+    respondsSender(error.message, null, ResponseCode.internalServerError, res); // Pass internal server error status code
+  }
+});

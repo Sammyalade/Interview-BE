@@ -7,16 +7,9 @@ const UserTask = require("../models/userTaskModel");
 const DAstatus = require("../models/dAssignmentStatus");
 const Oratory = require("../models/oratoryModel");
 const taskAssigner = require("../utils/taskAssigner");
-const {
-  UNREAD,
-  ORATORY,
-  DIALOGUE,
-  NUM_TO_ASSIGN,
-  DONE,
-  SKIPPED,
-} = require("../utils/constant");
+const { UNREAD, ORATORY, DIALOGUE } = require("../utils/constant");
 
-const numToAssign = NUM_TO_ASSIGN;
+const numToAssign = 20;
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
     null,
@@ -361,7 +354,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
     // Query userTasks to find undone tasks for the user, sorted by creation date in descending order
     const result = await UserTask.findOne({
       userId,
-      taskStatus: { $nin: [DONE, SKIPPED] },
+      taskStatus: { $nin: ["Done", "Skipped"] },
     })
       .sort({ updatedAt: -1 })
       .limit(1);
@@ -371,7 +364,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
       // Check if user has ever been assigned tasks or not
       const everAssigned = await DAstatus.findOne({ userId, status: true });
       if (!everAssigned) {
-        await taskAssigner(numToAssign, userId);
+        taskAssigner(numToAssign, userId);
         return respondsSender(
           null,
           "No tasks has been assigned to user.",
@@ -381,15 +374,10 @@ const getSingleTask = asyncHandler(async (req, res) => {
       }
 
       //assign new Task of either oratory or sub dialog base on previous assignment
-      await taskAssigner(numToAssign, userId);
-
-      const currentDateTime = new Date();
-      const formattedDateTime = currentDateTime.toLocaleString();
-      const responseMessage = `Congratulations Task completed at ${formattedDateTime}!\nKindly Logout and Login to get assigned new Task`;
-
+      taskAssigner(numToAssign, userId);
       return respondsSender(
         null,
-        responseMessage,
+        "Congratulations Task completed!",
         ResponseCode.requestUnavailable,
         res
       );

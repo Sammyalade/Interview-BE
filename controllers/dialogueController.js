@@ -9,7 +9,7 @@ const Oratory = require("../models/oratoryModel");
 const taskAssigner = require("../utils/taskAssigner");
 const { UNREAD, ORATORY, DIALOGUE } = require("../utils/constant");
 
-const numToAssign = 10;
+const numToAssign = 20;
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
     null,

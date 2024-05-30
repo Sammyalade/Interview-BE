@@ -15,6 +15,7 @@ const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
 const taskAssigner = require("../utils/taskAssigner");
 const { accents } = require("../utils/allAccents");
+const { NUM_TO_ASSIGN, UNDONE } = require("../utils/constant");
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -139,13 +140,13 @@ const registerUser = asynchandler(async (req, res) => {
     // Construct Reset URL
     const environment = process.env.ENVIRONMENT;
 
-    if (environment === "production") {
-      console.log(`Production url : ${frontEndUrl[environment]}`);
-    } else if (environment === "development") {
-      console.log(`development url : ${frontEndUrl[environment]}`);
-    } else {
-      console.log(`QA url : ${frontEndUrl[environment]}`);
-    }
+    // if (environment === "production") {
+    //   console.log(`Production url : ${frontEndUrl[environment]}`);
+    // } else if (environment === "development") {
+    //   console.log(`development url : ${frontEndUrl[environment]}`);
+    // } else {
+    //   console.log(`QA url : ${frontEndUrl[environment]}`);
+    // }
 
     const verifyUrl = `${frontEndUrl[environment]}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
 
@@ -282,7 +283,7 @@ const loginUser = asynchandler(async (req, res) => {
           status: true,
         });
 
-        const numToAssign = 10;
+        const numToAssign = NUM_TO_ASSIGN;
         if (!foundDaStatus) {
           // Assign Dialogue Tasks
           taskAssigner(numToAssign, user._id);
@@ -294,7 +295,7 @@ const loginUser = asynchandler(async (req, res) => {
             // Query userTasks to find undone tasks for the user
             const userTasks = await userTask.find({
               userId: user._id,
-              taskStatus: "Undone",
+              taskStatus: UNDONE,
             }); // Assuming taskStatus field indicates the status of the task
 
             // If there are no undone tasks found for the user, return an appropriate response

@@ -7,14 +7,19 @@ const ACTIVE = "Active";
 const DISABLED = "Disabled";
 const REMOVED = "Removed";
 const UNDONE = "Undone";
+const DONE = "Done";
+const SKIPPED = "Skipped";
 const REJECTED = "Rejected";
 const COMPLETED = "Completed";
-const ROLE={
-  USER:"USER",
-  ADMIN:"ADMIN",
-  QA:"QA",
-  ANNOTATOR:"ANNOTATOR",
-}
+const ROLE = {
+  USER: "USER",
+  ADMIN: "ADMIN",
+  QA: "QA",
+  ANNOTATOR: "ANNOTATOR",
+};
+const NUM_TO_ASSIGN = 30;
+const FOLDER_PREFIX = "Generated Dialogues/";
+
 module.exports = {
   UNREAD,
   ORATORY,
@@ -27,5 +32,9 @@ module.exports = {
   UNDONE,
   REJECTED,
   COMPLETED,
-  ROLE
+  ROLE,
+  NUM_TO_ASSIGN,
+  SKIPPED,
+  DONE,
+  FOLDER_PREFIX,
 };

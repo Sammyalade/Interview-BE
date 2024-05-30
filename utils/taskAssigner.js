@@ -5,7 +5,7 @@ const Oratory = require("../models/oratoryModel");
 const userTask = require("../models/userTaskModel");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
-const { DIALOGUE, ORATORY } = require("./constant");
+const { DIALOGUE, ORATORY, UNDONE } = require("./constant");
 
 const taskAssigner = async (numToAssign, userId) => {
   const dialogueAssigner = async (numToAssign, userId) => {
@@ -41,7 +41,7 @@ const taskAssigner = async (numToAssign, userId) => {
 
         // Create a new user task
         const newUserTask = new userTask({
-          taskStatus: "Undone",
+          taskStatus: UNDONE,
           subDialogueId: subDialogueItem._id,
           userId: userId, // Replace with the actual user ID
           // type: "dialogue",

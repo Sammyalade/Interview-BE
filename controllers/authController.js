@@ -2,9 +2,8 @@ const asynchandler = require("express-async-handler");
 const User = require("../models/userModel");
 const DAstatus = require("../models/dAssignmentStatus");
 const Token = require("../models/tokenModel");
-const subDialogue = require("../models/subDialogueModel");
-const Oratory = require("../models/oratoryModel");
-const userTask = require("../models/userTaskModel");
+const AnnotatorAuditorStatus = require("../models/AnnotatorAuditorStatusModel");
+const AuthLoginStatus = require("../models/LoginStatusModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -12,10 +11,9 @@ const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
-const { frontEndUrl } = require("../utils/frontEndUrl");
-const taskAssigner = require("../utils/taskAssigner");
-const { accents } = require("../utils/allAccents");
-const { NUM_TO_ASSIGN, UNDONE } = require("../utils/constant");
+const {  adminFrontEndUrl } = require("../utils/frontEndUrl");
+const {accents}= require('../utils/allAccents');
+const { ROLE, USER, DISABLED, ACTIVE, REMOVED } = require("../utils/constant");
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -40,26 +38,31 @@ function generateRandomString(length) {
 
 //this function isnt a permanent script  it can be writen and rewritten to effect any update on existing collected user data
 
-const runUserUpdate = asynchandler(async (req, res) => {
+const runUserUpdate = asynchandler(async (req, res)=>{
   try {
     const result = await User.updateMany(
       { role: { $exists: false } },
-      { $set: { role: "USER" } }
+      { $set: { role: 'USER' } }
     );
-
+    
     console.log(`users updated.`);
-    result &&
-      respondsSender(null, `users updated.`, ResponseCode.successful, res);
+     result &&  respondsSender(
+      null,
+      `users updated.`,
+      ResponseCode.successful,
+      res
+    );
+    
   } catch (error) {
-    result &&
-      respondsSender(
-        null,
-        `Error: ${error}`,
-        ResponseCode.internalServerError,
-        res
-      );
+    result &&  respondsSender(
+      null,
+      `Error: ${error}`,
+      ResponseCode.internalServerError,
+      res
+    );
   }
-});
+
+})
 
 // Register user
 const registerUser = asynchandler(async (req, res) => {
@@ -71,10 +74,9 @@ const registerUser = asynchandler(async (req, res) => {
       gender,
       dateOfBirth,
       accent,
-      //   tribe,
-      //   ethnicity,
       consent,
       password,
+      role
     } = req.body;
 
     // Validation Check
@@ -85,28 +87,38 @@ const registerUser = asynchandler(async (req, res) => {
       !gender ||
       !dateOfBirth ||
       !accent ||
-      //   !tribe ||
-      //   !ethnicity ||
       !consent ||
-      !password
+      !password ||
+      !role
     ) {
       respondsSender(
         null,
-        "Please fill in all required fields",
+        "Please fill in all required fields, firstname, lastname, email, gender, dateOfBirth, accent, consent, password, role",
         ResponseCode.badRequest,
         res
       );
     }
-    if (password.length < 6) {
-      respondsSender(
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    //ensure password is strong
+    if (!passwordRegex.test(password)) {
+    respondsSender(
         null,
-        "Password must be at least 6 characters",
+        "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special character.",
         ResponseCode.badRequest,
         res
-      );
+    );
     }
+    //normal user should not be allowed
+    if (role.toUpperCase()!=ROLE.ADMIN && role.toUpperCase()!=ROLE.ANNOTATOR && role.toUpperCase()!=ROLE.QA) {
+    respondsSender(
+        null,
+        "normal user not allowed to register here",
+        ResponseCode.badRequest,
+        res
+    );
+    }    
     const lowerEmail = email.toLowerCase();
-
+    const userRole= role.toUpperCase();
     // Validation check if user email already exists
     const userExists = await User.findOne({ email: lowerEmail });
     if (userExists) {
@@ -126,30 +138,19 @@ const registerUser = asynchandler(async (req, res) => {
       gender,
       dateOfBirth,
       accent,
-      //   tribe,
-      //   ethnicity,
       consent,
       password,
       verified: false,
-      role: "USER",
+      role:userRole
     });
+
 
     // User was successfully created, perform your desired action here
     const randomText = generateRandomString(12);
 
     // Construct Reset URL
-    const environment = process.env.ENVIRONMENT;
-
-    // if (environment === "production") {
-    //   console.log(`Production url : ${frontEndUrl[environment]}`);
-    // } else if (environment === "development") {
-    //   console.log(`development url : ${frontEndUrl[environment]}`);
-    // } else {
-    //   console.log(`QA url : ${frontEndUrl[environment]}`);
-    // }
-
-    const verifyUrl = `${frontEndUrl[environment]}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
-
+    const environment = process.env.ENVIRONMENT || "development";
+    const verifyUrl = `${adminFrontEndUrl[environment]}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
     // Reset Email.
     const message = `
         <h2> Hello ${user.firstname},</h2>
@@ -164,7 +165,7 @@ const registerUser = asynchandler(async (req, res) => {
 
     // Send the verification email
     await sendEmail(subject, message, send_to, sent_from);
-    console.log(verifyUrl);
+
     const response = {
       message: "Verification Email Sent",
       url: verifyUrl,
@@ -221,18 +222,19 @@ const verifyUser = asynchandler(async (req, res) => {
 
 //Login user
 const loginUser = asynchandler(async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, role } = req.body;
 
   //validate Request
-  if (!email || !password) {
+  if (!email || !password || !role) {
     respondsSender(
       null,
-      "Please Add Email and password",
+      "Please Add Email, password and role(QA, annotator or admin)",
       ResponseCode.badRequest,
       res
     );
   }
   const lowerEmail = email.toLowerCase();
+    const userRole= role.toUpperCase();
   //Check if user Exists
   const user = await User.findOne({ email: lowerEmail });
   if (!user) {
@@ -243,106 +245,76 @@ const loginUser = asynchandler(async (req, res) => {
       res
     );
   }
-
   // User exists, check if password is correct
   const passwordIsCorrect = await bcrypt.compare(password, user.password);
-  //if user role is a user allow next phase of auth
-  if (user.role == "USER") {
+  //if user role is a user allow next phase of auth 
+  if (user.role==userRole){
     if (user && passwordIsCorrect) {
-      if (user.verified == true) {
-        //Generate Login Token
-        const token = generateToken(user._id);
+    if (user.verified == true) {
+      //Generate Login Token
+      const token = generateToken(user._id);
 
-        //delete all user previous token
-        const deletionResult = await Token.deleteMany({ userId: user._id });
+      //delete all user previous token
+      const deletionResult = await Token.deleteMany({ userId: user._id });
 
-        //save token to token db
-        const savedToken = await Token.create({
-          userId: user._id,
-          token,
-        });
+      //save token to token db
+      const savedToken = await Token.create({
+        userId: user._id,
+        token,
+      });
 
-        const data = {
-          userInfo: {
-            _id: user._id,
-            firstname: user.firstname,
-            lastname: user.lastname,
-            email: user.email,
-            gender: user.gender,
-            dateOfBirth: user.dateOfBirth,
-            accent: user.accent,
-            //   tribe: user.tribe,
-            //   ethnicity: user.ethnicity,
-          },
-          token: token,
-        };
+      const data = {
+        userInfo: {
+          _id: user._id,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          email: user.email,
+          gender: user.gender,
+          dateOfBirth: user.dateOfBirth,
+          accent: user.accent,
+          role:user.role
+        },
+        token: token,
+      };
 
-        // Check Tasks
-        const foundDaStatus = await DAstatus.findOne({
-          userId: user._id,
-          status: true,
-        });
-
-        const numToAssign = NUM_TO_ASSIGN;
-        if (!foundDaStatus) {
-          // Assign Dialogue Tasks
-          taskAssigner(numToAssign, user._id);
-        } else {
-          // check if user has finished task assigned to them, and assign new task
-          //fecth user task where status is undone,
-
-          try {
-            // Query userTasks to find undone tasks for the user
-            const userTasks = await userTask.find({
-              userId: user._id,
-              taskStatus: UNDONE,
-            }); // Assuming taskStatus field indicates the status of the task
-
-            // If there are no undone tasks found for the user, return an appropriate response
-            if (userTasks.length === 0) {
-              //check the last assigned task and assign new task (dialog or oratory)
-              taskAssigner(numToAssign, user._id);
-            }
-          } catch (error) {
-            // Handle errors
-            console.error("Error fetching user tasks:", error);
-
-            respondsSender(
-              error.message,
-              null,
-              ResponseCode.internalServerError,
-              res
-            ); // Pass internal server error status code
-          }
-        }
-
-        respondsSender(data, "Login successful", ResponseCode.successful, res);
-      } else {
-        //password and email is right but user is not verified resend verification mail
-
-        respondsSender(
-          null,
-          "Please verify your email",
-          ResponseCode.noData,
-          res
+        //set active status true, set annotatorautdio status model true as well
+      // Find the user by userId and update the status to true
+        const result = await AuthLoginStatus.findOneAndUpdate(
+        { userId: user._id },
+        { status: true },
+        { upsert: true, new: true, setDefaultsOnInsert: true }
         );
-      }
+
+        if (result) {
+            //add annotator status true if it has not been added
+            const existingStatus = await AnnotatorAuditorStatus.findOne({ userId: user._id });
+
+                if (!existingStatus) {
+                // User does not have a status entry, create one with status active
+                const newStatus = new AnnotatorAuditorStatus({ userId: user._id, status: ACTIVE });
+                await newStatus.save();
+                console.log(`Added annotator status for user ${user._id} as active.`);
+                } 
+        } 
+
+
+      respondsSender(data, "Login successful", ResponseCode.successful, res);
     } else {
+      //password and email is right but user is not verified resend verification mail
       respondsSender(
         null,
-        "Invalid email or Password",
+        "Please verify your email",
         ResponseCode.noData,
         res
       );
     }
   } else {
+    respondsSender(null, "Wrong Password", ResponseCode.noData, res);
+  }
+  }
+  else{
     //this is not a user but a qa, or others
-    respondsSender(
-      null,
-      "Please only users are allowed here",
-      ResponseCode.unAuthorized,
-      res
-    );
+     respondsSender(null, `Please only Admin, Annotators or Auditors(QA) are allowed here. It seems you are not ${role}, please check in with your proper role`, ResponseCode.unAuthorized, res);
   }
 });
 
@@ -412,8 +384,7 @@ const getUser = asynchandler(async (req, res) => {
       gender: user.gender,
       dateOfBirth: user.dateOfBirth,
       accent: user.accent,
-      //   tribe: user.tribe,
-      //   ethnicity: user.ethnicity,
+      role:user.role
     };
     respondsSender(
       userInfo,
@@ -464,8 +435,8 @@ const updateUser = asynchandler(async (req, res) => {
 
 // Change Password
 const changePassword = asynchandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-  const { oldPassword, password } = req.body;
+  const { oldPassword, password, userId } = req.body;
+  const user = await User.findById({_id:userId});
   if (!user) {
     respondsSender(
       null,
@@ -532,7 +503,7 @@ const forgotPassword = asynchandler(async (req, res) => {
   const resetToken = generateToken(user._id);
 
   //Hash token before Saving to DB
-  //  const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
   //Save Token to DB
   await new Token({
     userId: user._id,
@@ -542,7 +513,7 @@ const forgotPassword = asynchandler(async (req, res) => {
   const randomText = generateRandomString(12);
   //construct Reset URL
   const environment = process.env.ENVIRONMENT;
-  const resetUrl = `${frontEndUrl[environment]}reset-password?token=${resetToken}&&jzhdh=${randomText}`;
+  const resetUrl = `${adminfrontEndUrl[environment]}reset-password?token=${resetToken}&&jzhdh=${randomText}`;
 
   // Reset Email
   const message = `
@@ -585,12 +556,6 @@ const resetPassword = asynchandler(async (req, res) => {
     );
   }
 
-  //Hash token,  then Compare to Token in DB
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(resetToken)
-    .digest("hex");
-
   //Find Token in DB before reseting
   const userToken = await Token.findOne({
     token: resetToken,
@@ -632,13 +597,9 @@ const resetPassword = asynchandler(async (req, res) => {
 
 // Get Accent of User
 const getAccent = asynchandler(async (req, res) => {
-  //  const allAccents
+//  const allAccents
   respondsSender(accents, "Successful", ResponseCode.successful, res);
 });
-
-const registerNoneUser = () => {
-  //collect values from body which inclues role (Ano)
-};
 
 module.exports = {
   registerUser,
@@ -653,5 +614,5 @@ module.exports = {
   verifyUser,
   getAccent,
   runUserUpdate,
-  registerNoneUser,
+
 };

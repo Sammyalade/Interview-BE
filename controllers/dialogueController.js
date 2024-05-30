@@ -12,8 +12,6 @@ const {
   ORATORY,
   DIALOGUE,
   NUM_TO_ASSIGN,
-  DONE,
-  SKIPPED,
 } = require("../utils/constant");
 
 const numToAssign = NUM_TO_ASSIGN;
@@ -361,7 +359,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
     // Query userTasks to find undone tasks for the user, sorted by creation date in descending order
     const result = await UserTask.findOne({
       userId,
-      taskStatus: { $nin: [DONE, SKIPPED] },
+      taskStatus: { $nin: ["Done", "Skipped"] },
     })
       .sort({ updatedAt: -1 })
       .limit(1);
@@ -371,7 +369,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
       // Check if user has ever been assigned tasks or not
       const everAssigned = await DAstatus.findOne({ userId, status: true });
       if (!everAssigned) {
-        await taskAssigner(numToAssign, userId);
+        taskAssigner(numToAssign, userId);
         return respondsSender(
           null,
           "No tasks has been assigned to user.",
@@ -381,12 +379,11 @@ const getSingleTask = asyncHandler(async (req, res) => {
       }
 
       //assign new Task of either oratory or sub dialog base on previous assignment
-      await taskAssigner(numToAssign, userId);
+      taskAssigner(numToAssign, userId);
 
       const currentDateTime = new Date();
       const formattedDateTime = currentDateTime.toLocaleString();
       const responseMessage = `Congratulations Task completed at ${formattedDateTime}!\nKindly Logout and Login to get assigned new Task`;
-
       return respondsSender(
         null,
         responseMessage,

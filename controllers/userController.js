@@ -139,15 +139,6 @@ const registerUser = asynchandler(async (req, res) => {
 
     // Construct Reset URL
     const environment = process.env.ENVIRONMENT;
-
-    // if (environment === "production") {
-    //   console.log(`Production url : ${frontEndUrl[environment]}`);
-    // } else if (environment === "development") {
-    //   console.log(`development url : ${frontEndUrl[environment]}`);
-    // } else {
-    //   console.log(`QA url : ${frontEndUrl[environment]}`);
-    // }
-
     const verifyUrl = `${frontEndUrl[environment]}verify?userid=${user._id}&&awarrillmNOW=${randomText}`;
 
     // Reset Email.
@@ -632,13 +623,8 @@ const resetPassword = asynchandler(async (req, res) => {
 
 // Get Accent of User
 const getAccent = asynchandler(async (req, res) => {
-  //  const allAccents
   respondsSender(accents, "Successful", ResponseCode.successful, res);
 });
-
-const registerNoneUser = () => {
-  //collect values from body which inclues role (Ano)
-};
 
 module.exports = {
   registerUser,
@@ -653,5 +639,4 @@ module.exports = {
   verifyUser,
   getAccent,
   runUserUpdate,
-  registerNoneUser,
 };

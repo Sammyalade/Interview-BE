@@ -12,6 +12,8 @@ const {
   ORATORY,
   DIALOGUE,
   NUM_TO_ASSIGN,
+  DONE,
+  SKIPPED,
 } = require("../utils/constant");
 
 const numToAssign = NUM_TO_ASSIGN;
@@ -359,9 +361,9 @@ const getSingleTask = asyncHandler(async (req, res) => {
     // Query userTasks to find undone tasks for the user, sorted by creation date in descending order
     const result = await UserTask.findOne({
       userId,
-      taskStatus: { $nin: ["Done", "Skipped"] },
+      taskStatus: { $nin: [DONE, SKIPPED] },
     })
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: 1 })
       .limit(1);
 
     // If there are no undone tasks found for the user, return an appropriate response

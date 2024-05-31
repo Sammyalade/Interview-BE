@@ -7,9 +7,16 @@ const UserTask = require("../models/userTaskModel");
 const DAstatus = require("../models/dAssignmentStatus");
 const Oratory = require("../models/oratoryModel");
 const taskAssigner = require("../utils/taskAssigner");
-const { UNREAD, ORATORY, DIALOGUE } = require("../utils/constant");
+const {
+  UNREAD,
+  ORATORY,
+  DIALOGUE,
+  NUM_TO_ASSIGN,
+  DONE,
+  SKIPPED,
+} = require("../utils/constant");
 
-const numToAssign = 20;
+const numToAssign = NUM_TO_ASSIGN;
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
     null,
@@ -354,9 +361,9 @@ const getSingleTask = asyncHandler(async (req, res) => {
     // Query userTasks to find undone tasks for the user, sorted by creation date in descending order
     const result = await UserTask.findOne({
       userId,
-      taskStatus: { $nin: ["Done", "Skipped"] },
+      taskStatus: { $nin: [DONE, SKIPPED] },
     })
-      .sort({ updatedAt: -1 })
+      .sort({ createdAt: 1 })
       .limit(1);
 
     // If there are no undone tasks found for the user, return an appropriate response
@@ -375,9 +382,13 @@ const getSingleTask = asyncHandler(async (req, res) => {
 
       //assign new Task of either oratory or sub dialog base on previous assignment
       taskAssigner(numToAssign, userId);
+
+      const currentDateTime = new Date();
+      const formattedDateTime = currentDateTime.toLocaleString();
+      const responseMessage = `Congratulations Task completed at ${formattedDateTime}!\nKindly Logout and Login to get assigned new Task`;
       return respondsSender(
         null,
-        "Congratulations Task completed!",
+        responseMessage,
         ResponseCode.requestUnavailable,
         res
       );

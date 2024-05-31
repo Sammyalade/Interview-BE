@@ -14,6 +14,8 @@ const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
 const taskAssigner = require("../utils/taskAssigner");
+const { accents } = require("../utils/allAccents");
+const { NUM_TO_ASSIGN, UNDONE } = require("../utils/constant");
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -166,7 +168,7 @@ const registerUser = asynchandler(async (req, res) => {
     // Handle any errors that occurred during user registration
     console.error("Error registering user:", error);
     respondsSender(
-      data,
+      null,
       "Registration Failed" + error.message,
       ResponseCode.internalServerError,
       res
@@ -272,7 +274,7 @@ const loginUser = asynchandler(async (req, res) => {
           status: true,
         });
 
-        const numToAssign = 20;
+        const numToAssign = NUM_TO_ASSIGN;
         if (!foundDaStatus) {
           // Assign Dialogue Tasks
           taskAssigner(numToAssign, user._id);
@@ -284,7 +286,7 @@ const loginUser = asynchandler(async (req, res) => {
             // Query userTasks to find undone tasks for the user
             const userTasks = await userTask.find({
               userId: user._id,
-              taskStatus: "Undone",
+              taskStatus: UNDONE,
             }); // Assuming taskStatus field indicates the status of the task
 
             // If there are no undone tasks found for the user, return an appropriate response
@@ -621,90 +623,7 @@ const resetPassword = asynchandler(async (req, res) => {
 
 // Get Accent of User
 const getAccent = asynchandler(async (req, res) => {
-  const allAccents = [
-    "Yoruba",
-    "Hausa",
-    "Igbo",
-    "Ijaw",
-    "Idoma",
-    "Igala",
-    "Izon",
-    "Ebira",
-    "Urhobo",
-    "Nembe",
-    "Ibibio",
-    "Pidgin",
-    "Esan",
-    "Alago",
-    "Fulani",
-    "Isoko",
-    "Ikwere",
-    "Efik",
-    "Edo",
-    "Bekwarra",
-    "Hausa/Fulani",
-    "Epie",
-    "Nupe",
-    "Anaang",
-    "English",
-    "Afemai",
-    "Eggon",
-    "Ukwuani",
-    "Benin",
-    "Kagoma",
-    "Nasarawa Eggon",
-    "Tiv",
-    "Ogoni",
-    "Mada",
-    "Bette",
-    "Berom",
-    "Bini",
-    "Ngas",
-    "Etsako",
-    "Okrika",
-    "Damara",
-    "Kanuri",
-    "Itsekiri",
-    "Ekpeye",
-    "Mwaghavul",
-    "Bajju",
-    "Ekene",
-    "Jaba",
-    "Ika",
-    "Angas",
-    "Brass",
-    "Ikulu",
-    "Eleme",
-    "Oklo",
-    "Agatu",
-    "Okirika",
-    "Igarra",
-    "Ijaw(nembe)",
-    "Khana",
-    "Ogbia",
-    "Gbagyi",
-    "Delta",
-    "Bassa",
-    "Etche",
-    "Kubi",
-    "Jukun",
-    "Urobo",
-    "Kalabari",
-    "Ibani",
-    "Obolo",
-    "Idah",
-    "Bassa-nge/nupe",
-    "Yala mbembe",
-    "Eket",
-    "Afo",
-    "Ebiobo",
-    "Nyandang",
-    "Ishan",
-    "Bagi",
-    "Estako",
-    "Gerawa",
-  ];
-  respondsSender(allAccents, "Successful", ResponseCode.successful, res);
+  respondsSender(accents, "Successful", ResponseCode.successful, res);
 });
 
 module.exports = {

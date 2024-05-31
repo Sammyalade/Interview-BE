@@ -17,7 +17,7 @@ const ROLE = {
   QA: "QA",
   ANNOTATOR: "ANNOTATOR",
 };
-const NUM_TO_ASSIGN = 40;
+const NUM_TO_ASSIGN = 30;
 const FOLDER_PREFIX = "Generated Dialogues/";
 
 module.exports = {

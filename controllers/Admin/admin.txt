@@ -17,9 +17,8 @@ Audited Languate {for each language} {completed}
 //
 admin
 - Annotatorsfilter = {Button + Input} response {Name, Role, Email Task Assigned Total Done Status, Last Login}
-Actionendpoint = {userId} response {}
 - AssignAuditor = {userId , ArrayOfUserIds} response{ change usersRole to Auditor successful.}
-AuditorsFilter = {Button + Input} response {Name, Role, Administrative Access(Status) Email Task Assigned Total Done Status, Last Login}
+* AuditorsFilter = {Button + Input} response {Name, Role, Administrative Access(Status) Email Task Assigned Total Done Status, Last Login}
 Actionendpoint = {userId} response {} 
 
 

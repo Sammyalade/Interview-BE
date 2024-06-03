@@ -232,11 +232,80 @@ const getTaskDetails = asynchandler(async (req, res) => {
   }
 });
 
+const filterAnnotator = asynchandler(async (req, res) => {
+  const { status, search } = req.query; // Extract query parameters
 
+  try {
+    // Build query object for user search
+    let filterQuery = { role: 'Annotator' }; // Only fetch users with the role 'Annotator'
+
+    if (search) {
+      // Case-insensitive regex search for names and email
+      filterQuery.$or = [
+        { firstname: { $regex: search, $options: "i" } },
+        { lastname: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    let annotators = await User.find(filterQuery); // Initial fetch of annotators based on search query
+
+    if (status && status !== 'All') {
+      // Find annotators with the specified statuses
+      const statusDocs = await Status.find({ status, userId: { $in: annotators.map(annotator => annotator._id) } }).populate("userId");
+      const userIds = statusDocs.map((statusDoc) => statusDoc.userId._id);
+      annotators = annotators.filter(annotator => userIds.includes(annotator._id));
+    }
+
+    const annotatorDocs = annotators.map((annotator) => {
+      return {
+        name: `${annotator.firstname} ${annotator.lastname}`,
+        email: annotator.email,
+        role: annotator.role,
+        status: annotator.status,
+        lastLogin: annotator.lastLogin,
+      };
+    });
+
+    res.status(200).json({
+      message: "Annotators fetched successfully",
+      data: annotatorDocs,
+    });
+  } catch (error) {
+    console.error(error); // Log the error for debugging purposes
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
+
+
+// Assign Qa
+const updateRoleToQA = asynchandler(async (req, res) => {
+  const { userIds } = req.body; // Extract user IDs from the request body
+
+  if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+    return res.status(400).json({ message: "No user IDs provided or invalid format" });
+  }
+
+  try {
+    // Update the role of the specified users to 'QA'
+    await User.updateMany(
+      { _id: { $in: userIds } },
+      { $set: { role: "QA" } },
+      { multi: true } // This option ensures multiple documents are updated
+    );
+
+    res.status(200).json({ message: "User roles updated to QA successfully" });
+  } catch (error) {
+    console.error(error); // Log the error for debugging purposes
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 module.exports = {
     searchUser,
     getTaskDetails,
     getStats, 
-    getCompletedTasks
+    getCompletedTasks,
+    filterAnnotator,
+    updateRoleToQA
 };

@@ -1,9 +1,27 @@
-test
+doc
+check user role and getAdmin in dashboard 
+get dashboard stats(protected) - QA & Annotators
+-Total QA | Total Annotators
+-Active QA | Active Annotators
+-inactive QA | inactive Annotators
+-Disabled QA  | Disabled Annotators
+- Removed QA  | Removed Annotators
 
+
+
+taskQueue 
+Annotated language {for each language} {completed}
+Audited Languate {for each language} {completed}
+
+
+//
 admin
-Annotatorsfilter = {Button + Input} response {Name, Role, Email Task Assigned Total Done Status, Last Login}
+- Annotatorsfilter = {Button + Input} response {Name, Role, Email Task Assigned Total Done Status, Last Login}
 Actionendpoint = {userId} response {}
-AssignAuditor = {userId , ArrayOfUserIds} response{ change usersRole to Auditor successful.}
+- AssignAuditor = {userId , ArrayOfUserIds} response{ change usersRole to Auditor successful.}
 AuditorsFilter = {Button + Input} response {Name, Role, Administrative Access(Status) Email Task Assigned Total Done Status, Last Login}
 Actionendpoint = {userId} response {} 
- 
+
+
+
+

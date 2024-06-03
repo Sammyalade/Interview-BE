@@ -9,6 +9,7 @@ const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
 const metadataRoute = require("./routes/metadataRoute");
+const adminRoute = require("./routes/adminRoute");
 
 const feedbackRoute = require("./routes/feedbackRoute");
 const taskRoute = require("./routes/taskRoute");
@@ -48,6 +49,8 @@ app.use("/api/feedback", feedbackRoute);
 app.use("/api/dialogue", dialogueRoute);
 app.use("/api/metadataGenerator", metadataRoute);
 app.use("/api/task", taskRoute);
+app.use("/api/admin", adminRoute);
+
 
 // Routes
 app.get("/", (req, res) => {

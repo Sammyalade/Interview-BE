@@ -4,13 +4,12 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const userRoute = require("./routes/userRoute");
-const authRoute = require("./routes/authRoute");
 const audioRoute = require("./routes/audioRoute");
 const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
 const metadataRoute = require("./routes/metadataRoute");
-const adminRoute = require("./routes/adminRoute")
+// const adminRoute = require("./routes/adminRoute");
 
 const feedbackRoute = require("./routes/feedbackRoute");
 const taskRoute = require("./routes/taskRoute");
@@ -18,8 +17,7 @@ const errorHandler = require("./middleWare/errorMiddleware");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
-const multer = require('multer');
-
+const multer = require("multer");
 
 // Set up Multer for file upload
 const storage = multer.memoryStorage();
@@ -44,17 +42,14 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 //Route Middleware
 app.use("/api/users", userRoute);
-app.use("/api/auth", authRoute);
 app.use("/api/audio", audioRoute);
 app.use("/api/word", wordBankRoute);
 app.use("/api/contactus", contactRoute);
 app.use("/api/feedback", feedbackRoute);
 app.use("/api/dialogue", dialogueRoute);
-app.use("/api/task", taskRoute);
 app.use("/api/metadataGenerator", metadataRoute);
-app.use("/api/admin", adminRoute);
-
-
+app.use("/api/task", taskRoute);
+// app.use("/api/admin", adminRoute);
 
 
 // Routes
@@ -84,10 +79,6 @@ mongoose
   });
 */
 
-
-
-
-
 //Routes
 app.get("/", (req, res) => {
   res.send("Home Page");
@@ -100,7 +91,7 @@ const PORT = process.env.PORT || 4000;
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('DB connected successfully');
+    console.log("DB connected successfully");
     app.listen(PORT, () => {
       console.log(`Server running on Port ${PORT}`);
     });

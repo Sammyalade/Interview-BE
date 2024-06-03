@@ -1,5 +1,11 @@
 const mongoose = require("mongoose");
-const { DIALOGUE, ORATORY } = require("../utils/constant");
+const {
+  DIALOGUE,
+  ORATORY,
+  UNDONE,
+  SKIPPED,
+  DONE,
+} = require("../utils/constant");
 
 const userTaskSchema = mongoose.Schema(
   {
@@ -7,7 +13,7 @@ const userTaskSchema = mongoose.Schema(
       type: String,
       required: true,
       default: "Undone",
-      enum: ["Done", "Skipped", "Undone"],
+      enum: [DONE, SKIPPED, UNDONE],
     },
 
     taskStage: {
@@ -40,7 +46,7 @@ const userTaskSchema = mongoose.Schema(
       default: DIALOGUE,
     },
   },
-  
+
   { timestamps: true }
 );
 

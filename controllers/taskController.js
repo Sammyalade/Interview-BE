@@ -8,6 +8,8 @@ const Speak = require("../models/speakModel");
 const Record = require("../models/recordModel");
 const UserTask = require("../models/userTaskModel");
 const Oratory = require("../models/oratoryModel");
+const { language } = require("googleapis/build/src/apis/language");
+const { DONE, NUM_TO_ASSIGN } = require("../utils/constant");
 
 const saveGeneratedFileInfo = asyncHandler(async (req, res) => {
   // Access filePath and other from the request object
@@ -451,16 +453,17 @@ const getMeter = asyncHandler(async (req, res) => {
   // Collect userId
   const userId = req.params.userId;
   // Fetch number of all tasks assigned to user.
-  const totalTasks = await UserTask.countDocuments({ userId: userId });
-  // Fetch number of all done user tasks.
-  const doneTasks = await UserTask.countDocuments({
-    userId: userId,
-    taskStatus: "Done",
-  });
+  const tasks = await UserTask.find({ userId: userId });
+  const totalTasks = tasks.length;
+
+  // Fetch all done tasks assigned to user
+  const doneTasks = tasks.filter((task) => task.taskStatus === DONE).length;
+
   const result = {
     totalTasks,
     doneTasks,
   };
+
   respondsSender(result, "Successful", ResponseCode.successful, res);
 });
 

@@ -13,8 +13,9 @@ const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
 const { frontEndUrl } = require("../utils/frontEndUrl");
-const taskAssigner = require('../utils/taskAssigner')
-const {accents}= require('../utils/allAccents')
+const taskAssigner = require("../utils/taskAssigner");
+const { accents } = require("../utils/allAccents");
+const { NUM_TO_ASSIGN, UNDONE } = require("../utils/constant");
 
 const generateToken = (id) => {
   const timestamp = Date.now();
@@ -39,31 +40,26 @@ function generateRandomString(length) {
 
 //this function isnt a permanent script  it can be writen and rewritten to effect any update on existing collected user data
 
-const runUserUpdate = asynchandler(async (req, res)=>{
+const runUserUpdate = asynchandler(async (req, res) => {
   try {
     const result = await User.updateMany(
       { role: { $exists: false } },
-      { $set: { role: 'USER' } }
+      { $set: { role: "USER" } }
     );
-    
-    console.log(`users updated.`);
-     result &&  respondsSender(
-      null,
-      `users updated.`,
-      ResponseCode.successful,
-      res
-    );
-    
-  } catch (error) {
-    result &&  respondsSender(
-      null,
-      `Error: ${error}`,
-      ResponseCode.internalServerError,
-      res
-    );
-  }
 
-})
+    console.log(`users updated.`);
+    result &&
+      respondsSender(null, `users updated.`, ResponseCode.successful, res);
+  } catch (error) {
+    result &&
+      respondsSender(
+        null,
+        `Error: ${error}`,
+        ResponseCode.internalServerError,
+        res
+      );
+  }
+});
 
 // Register user
 const registerUser = asynchandler(async (req, res) => {
@@ -135,7 +131,7 @@ const registerUser = asynchandler(async (req, res) => {
       consent,
       password,
       verified: false,
-      role:"USER"
+      role: "USER",
     });
 
     // User was successfully created, perform your desired action here
@@ -241,97 +237,104 @@ const loginUser = asynchandler(async (req, res) => {
 
   // User exists, check if password is correct
   const passwordIsCorrect = await bcrypt.compare(password, user.password);
-  //if user role is a user allow next phase of auth 
-  if (user.role=="USER"){
+  //if user role is a user allow next phase of auth
+  if (user.role == "USER") {
     if (user && passwordIsCorrect) {
-    if (user.verified == true) {
-      //Generate Login Token
-      const token = generateToken(user._id);
+      if (user.verified == true) {
+        //Generate Login Token
+        const token = generateToken(user._id);
 
-      //delete all user previous token
-      const deletionResult = await Token.deleteMany({ userId: user._id });
+        //delete all user previous token
+        const deletionResult = await Token.deleteMany({ userId: user._id });
 
-      //save token to token db
-      const savedToken = await Token.create({
-        userId: user._id,
-        token,
-      });
+        //save token to token db
+        const savedToken = await Token.create({
+          userId: user._id,
+          token,
+        });
 
-      const data = {
-        userInfo: {
-          _id: user._id,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email,
-          gender: user.gender,
-          dateOfBirth: user.dateOfBirth,
-          accent: user.accent,
-          //   tribe: user.tribe,
-          //   ethnicity: user.ethnicity,
-        },
-        token: token,
-      };
+        const data = {
+          userInfo: {
+            _id: user._id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            gender: user.gender,
+            dateOfBirth: user.dateOfBirth,
+            accent: user.accent,
+            //   tribe: user.tribe,
+            //   ethnicity: user.ethnicity,
+          },
+          token: token,
+        };
 
-      // Check Tasks
-      const foundDaStatus = await DAstatus.findOne({
-        userId: user._id,
-        status: true,
-      });
+        // Check Tasks
+        const foundDaStatus = await DAstatus.findOne({
+          userId: user._id,
+          status: true,
+        });
 
-      const numToAssign = 10;
-      if (!foundDaStatus) {
-        // Assign Dialogue Tasks 
-       taskAssigner(numToAssign, user._id)
-     
-      } else {
-        // check if user has finished task assigned to them, and assign new task
-        //fecth user task where status is undone,
-        
-        try {
-          // Query userTasks to find undone tasks for the user
-          const userTasks = await userTask.find({
-            userId: user._id,
-            taskStatus: "Undone",
-          }); // Assuming taskStatus field indicates the status of the task
+        const numToAssign = NUM_TO_ASSIGN;
+        if (!foundDaStatus) {
+          // Assign Dialogue Tasks
+          taskAssigner(numToAssign, user._id);
+        } else {
+          // check if user has finished task assigned to them, and assign new task
+          //fecth user task where status is undone,
 
-          // If there are no undone tasks found for the user, return an appropriate response
-          if (userTasks.length === 0) {
-            //check the last assigned task and assign new task (dialog or oratory)
-            taskAssigner(numToAssign, user._id)
+          try {
+            // Query userTasks to find undone tasks for the user
+            const userTasks = await userTask.find({
+              userId: user._id,
+              taskStatus: UNDONE,
+            }); // Assuming taskStatus field indicates the status of the task
+
+            // If there are no undone tasks found for the user, return an appropriate response
+            if (userTasks.length === 0) {
+              //check the last assigned task and assign new task (dialog or oratory)
+              taskAssigner(numToAssign, user._id);
+            }
+          } catch (error) {
+            // Handle errors
+            console.error("Error fetching user tasks:", error);
+
+            respondsSender(
+              error.message,
+              null,
+              ResponseCode.internalServerError,
+              res
+            ); // Pass internal server error status code
           }
-        } catch (error) {
-          // Handle errors
-          console.error("Error fetching user tasks:", error);
-
-          respondsSender(
-            error.message,
-            null,
-            ResponseCode.internalServerError,
-            res
-          ); // Pass internal server error status code
         }
+
+        respondsSender(data, "Login successful", ResponseCode.successful, res);
+      } else {
+        //password and email is right but user is not verified resend verification mail
+
+        respondsSender(
+          null,
+          "Please verify your email",
+          ResponseCode.noData,
+          res
+        );
       }
-
-      respondsSender(data, "Login successful", ResponseCode.successful, res);
     } else {
-      //password and email is right but user is not verified resend verification mail
-
       respondsSender(
         null,
-        "Please verify your email",
+        "Invalid email or Password",
         ResponseCode.noData,
         res
       );
     }
   } else {
-    respondsSender(null, "Invalid email or Password", ResponseCode.noData, res);
-  }
-  }
-  else{
     //this is not a user but a qa, or others
-     respondsSender(null, "Please only users are allowed here", ResponseCode.unAuthorized, res);
+    respondsSender(
+      null,
+      "Please only users are allowed here",
+      ResponseCode.unAuthorized,
+      res
+    );
   }
-  
 });
 
 //Logout User
@@ -620,14 +623,8 @@ const resetPassword = asynchandler(async (req, res) => {
 
 // Get Accent of User
 const getAccent = asynchandler(async (req, res) => {
-//  const allAccents
   respondsSender(accents, "Successful", ResponseCode.successful, res);
 });
-
-const registerNoneUser= ()=>{
-  //collect values from body which inclues role (Ano)
-
-}
 
 module.exports = {
   registerUser,
@@ -642,5 +639,4 @@ module.exports = {
   verifyUser,
   getAccent,
   runUserUpdate,
-  registerNoneUser,
 };

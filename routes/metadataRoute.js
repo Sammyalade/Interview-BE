@@ -6,15 +6,16 @@ const {
   getSpokenDialogue,
   getRecordedDialogue,
   getallMetadata,
-  test
+  getTranslatedText,
+  test,
 } = require("../controllers/MetadataController");
 
 router.get("/recordeddialogue", getRecordedDialogue);
-router.get("/spokendialogue/", getSpokenDialogue);
+router.get("/spokendialogue", getSpokenDialogue);
 router.get("/recordedoratory/", getRecordedOratory);
 router.get("/spokenoratory/", getSpokenOratory);
+router.get("/translate", getTranslatedText);
 router.get("/allmetadata", getallMetadata);
 router.get("/test", test);
 
 module.exports = router;
-

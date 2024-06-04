@@ -13,10 +13,10 @@ const {
   resetPassword,
   getUser,
   verifyUser,
-  getAccent,
-  runUserUpdate,
-} = require("../controllers/userController");
+  getAccent, runUserUpdate,
+} = require("../controllers/authController");
 const protect = require("../middleWare/authMiddleware");
+
 
 router.post("/register", registerUser);
 router.get("/verify/:id/", verifyUser);

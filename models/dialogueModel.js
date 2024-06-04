@@ -15,7 +15,7 @@ const dialogueSchema = mongoose.Schema({
            default:"not specified"
     },
 
-});
+}, { timestamps: true });
 
 // Pre-save  to generate an incrementing title
 dialogueSchema.pre("save", async function(next) {

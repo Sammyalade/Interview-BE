@@ -8,14 +8,15 @@ const audioRoute = require("./routes/audioRoute");
 const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
+const metadataRoute = require("./routes/metadataRoute");
+
 const feedbackRoute = require("./routes/feedbackRoute");
 const taskRoute = require("./routes/taskRoute");
 const errorHandler = require("./middleWare/errorMiddleware");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 
-const multer = require('multer');
-
+const multer = require("multer");
 
 // Set up Multer for file upload
 const storage = multer.memoryStorage();
@@ -45,10 +46,8 @@ app.use("/api/word", wordBankRoute);
 app.use("/api/contactus", contactRoute);
 app.use("/api/feedback", feedbackRoute);
 app.use("/api/dialogue", dialogueRoute);
+app.use("/api/metadataGenerator", metadataRoute);
 app.use("/api/task", taskRoute);
-
-
-
 
 // Routes
 app.get("/", (req, res) => {
@@ -77,10 +76,6 @@ mongoose
   });
 */
 
-
-
-
-
 //Routes
 app.get("/", (req, res) => {
   res.send("Home Page");
@@ -93,7 +88,7 @@ const PORT = process.env.PORT || 4000;
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => {
-    console.log('DB connected successfully');
+    console.log("DB connected successfully");
     app.listen(PORT, () => {
       console.log(`Server running on Port ${PORT}`);
     });

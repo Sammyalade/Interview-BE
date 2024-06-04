@@ -10,7 +10,14 @@ status: {
     default: false,
     requires: true
 
-},},
+},
+taskType: {
+    type: String,
+    default: "unrecorded",
+    requires: true
+
+}
+},
 
 {timestamps: true,})
 const DAstatus = mongoose.model("DAstatus", daStatusSchema)

@@ -1,33 +1,58 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const { ORATORY, DIALOGUE } = require("../utils/constant");
+const { language } = require("googleapis/build/src/apis/language");
 
-const recordSchema = mongoose.Schema({
-   
+const recordSchema = mongoose.Schema(
+  {
     filePath: {
-        type: String,
-        required: true,
-        unique: true,
-        maxLength: 2048
+      type: String,
+      required: true,
+      unique: false,
+    },
+    fileLink: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+
+    fileName: {
+      type: String,
+      required: true,
+      unique: true,
     },
 
     dialogueId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included"],
-        ref: "dialogue"
+      type: mongoose.Schema.Types.ObjectId,
+      required: [false, "id not included"],
+      ref: DIALOGUE,
     },
 
     subDialogueId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included"],
-        ref: "subDialogue"
+      type: mongoose.Schema.Types.ObjectId,
+      required: [false, "id not included"],
+      ref: "subDialogue",
+    },
+
+    oratoryId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: [false, "id not included "],
+      ref: ORATORY,
     },
 
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: [true, "id not included"],
-        ref: "user"
-    }
-});
+      type: mongoose.Schema.Types.ObjectId,
+      required: [true, "id not included"],
+      ref: "user",
+    },
+    language: {
+      type: String,
+      required: false,
+      default: "English",
+    },
+  },
+  { timestamps: true }
+);
 
 const Record = mongoose.model("Record", recordSchema);
 
-module.exports = Record
+module.exports = Record;

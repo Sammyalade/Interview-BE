@@ -7,7 +7,6 @@ const {
   test,
   skipTask,
   getMeter,
-  saveGeneratedFileInfo,
 } = require("../controllers/taskController");
 const protect = require("../middleWare/authMiddleware");
 
@@ -19,9 +18,10 @@ const { uploadToGCS } = require("../utils/GCPUploads");
 
 router.get("/test", test);
 router.post("/record", upload.single("file"), uploadToGCS, saveRecording);
-router.post("/translate", protect, saveTranslate);
+router.post("/translate", protect("USER"), saveTranslate);
 router.post("/speak", upload.single("file"), uploadToGCS, saveSpeak);
-router.post("/skip", protect, skipTask);
-router.get("/meter/:userId", protect, getMeter);
+router.post("/skip", protect("USER"), skipTask);
+router.get("/meter/:userId", protect("USER"), getMeter);
 
 module.exports = router;
+

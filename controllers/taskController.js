@@ -1,13 +1,15 @@
 const asyncHandler = require("express-async-handler");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
-
 const Dialogue = require("../models/dialogueModel");
 const subDialogue = require("../models/subDialogueModel");
 const Translate = require("../models/translateModel");
 const Speak = require("../models/speakModel");
 const Record = require("../models/recordModel");
 const UserTask = require("../models/userTaskModel");
+const Oratory = require("../models/oratoryModel");
+const { language } = require("googleapis/build/src/apis/language");
+const { DONE, NUM_TO_ASSIGN } = require("../utils/constant");
 
 const saveGeneratedFileInfo = asyncHandler(async (req, res) => {
   // Access filePath and other from the request object
@@ -94,24 +96,39 @@ const test = asyncHandler(async (req, res) => {
 
 const saveRecording = asyncHandler(async (req, res) => {
   // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, filePath) and validate
-  const { userId, subDialogueId, dialogueId, taskStage, taskId } = req.body;
-  const filePath = req.uploadedFileName[0]?.metadata?.mediaLink;
+  let { userId, subDialogueId, dialogueId, taskStage, taskId, oratoryId } =
+    req.body;
+
+  const fileLink = req.uploadedFileName[0]?.metadata?.mediaLink;
+  const fileName = req.fileName;
+  const filePath = req.filePath;
 
   if (
     !userId ||
     !subDialogueId ||
     !dialogueId ||
+    !oratoryId ||
     !taskStage ||
     !taskId ||
-    !filePath
+    !fileLink
   ) {
     respondsSender(
       null,
-      "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, file (recorded or spoken file) and task(task type e.g record, speak ) are all included in the body",
+      "Please ensure that userId, subdialogueId, dialogueId, oratoryId, taskStage, taskId, file (recorded or spoken file) and task(task type e.g record, speak ) are all included in the body",
       ResponseCode.badRequest,
       res
     );
     return; // Return to prevent further execution
+  }
+
+  if (subDialogueId.includes("null")) {
+    subDialogueId = null;
+  }
+  if (oratoryId.includes("null")) {
+    oratoryId = null;
+  }
+  if (dialogueId.includes("null")) {
+    dialogueId = null;
   }
 
   try {
@@ -120,13 +137,17 @@ const saveRecording = asyncHandler(async (req, res) => {
       userId,
       subDialogueId,
       dialogueId,
+      oratoryId,
       filePath,
+      fileLink,
+      fileName,
     });
 
     // Check if the recording was created successfully
     if (Recording) {
       // Update user task stage
       const newTaskStage = Number(taskStage) + 1;
+
       const userTask = await UserTask.findById(taskId);
 
       if (userTask) {
@@ -167,20 +188,23 @@ const saveRecording = asyncHandler(async (req, res) => {
 });
 
 const saveTranslate = asyncHandler(async (req, res) => {
-  // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, translateText) and validate
-  const {
+  // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, oratoryId, translateText) and validate
+  let {
     userId,
     subDialogueId,
     dialogueId,
+    oratoryId,
     taskStage,
     taskId,
     translateText,
     language,
   } = req.body;
+
   if (
     !userId ||
     !subDialogueId ||
     !dialogueId ||
+    !oratoryId ||
     !taskStage ||
     !taskId ||
     !translateText ||
@@ -188,11 +212,20 @@ const saveTranslate = asyncHandler(async (req, res) => {
   ) {
     respondsSender(
       null,
-      "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, language and translateText are all included in the body",
+      "Please ensure that userId, subdialogueId, dialogueId, taskStage, taskId, language and translateText, OratoryId are all included in the body",
       ResponseCode.badRequest,
       res
     );
     return; // Return to prevent further execution
+  }
+  if (subDialogueId.includes("null")) {
+    subDialogueId = null;
+  }
+  if (oratoryId.includes("null")) {
+    oratoryId = null;
+  }
+  if (dialogueId.includes("null")) {
+    dialogueId = null;
   }
 
   try {
@@ -201,6 +234,7 @@ const saveTranslate = asyncHandler(async (req, res) => {
       userId,
       subDialogueId,
       dialogueId,
+      oratoryId,
       translateText,
       language,
     });
@@ -241,22 +275,35 @@ const saveTranslate = asyncHandler(async (req, res) => {
     // An error occurred during recording creation or task update
     respondsSender(
       null,
-      "Unknown error, please check your code",
+      "Unknown error, please check your code" + error,
       ResponseCode.internalServerError,
       res
     );
   }
 });
+
 const saveSpeak = asyncHandler(async (req, res) => {
   // Get data sent by user (subdialogueId, taskStage, userId, dialogueId, filePath) and validate
-  const { userId, subDialogueId, dialogueId, taskStage, taskId, language } =
-    req.body;
-  const filePath = req.uploadedFileName[0]?.metadata?.mediaLink;
+  let {
+    userId,
+    subDialogueId,
+    dialogueId,
+    oratoryId,
+    taskStage,
+    taskId,
+    language,
+  } = req.body;
+  // console.log(req.body);
+
+  const fileLink = req.uploadedFileName[0]?.metadata?.mediaLink;
+  const fileName = req.fileName;
+  const filePath = req.filePath;
 
   if (
     !userId ||
     !subDialogueId ||
     !dialogueId ||
+    !oratoryId ||
     !taskStage ||
     !taskId ||
     !filePath ||
@@ -271,12 +318,24 @@ const saveSpeak = asyncHandler(async (req, res) => {
     return; // Return to prevent further execution
   }
 
+  if (subDialogueId.includes("null")) {
+    subDialogueId = null;
+  }
+  if (oratoryId.includes("null")) {
+    oratoryId = null;
+  }
+  if (dialogueId.includes("null")) {
+    dialogueId = null;
+  }
   try {
     // Save the recording data
     const Speaking = await Speak.create({
       userId,
       subDialogueId,
       dialogueId,
+      oratoryId,
+      fileLink,
+      fileName,
       filePath,
       language,
     });
@@ -326,31 +385,42 @@ const saveSpeak = asyncHandler(async (req, res) => {
 });
 
 const skipTask = asyncHandler(async (req, res) => {
-  // Get data sent by user (userId, subDialogueId, taskId) and validate
-  const { userId, subDialogueId, taskId } = req.body;
-  if (!userId || !subDialogueId || !taskId) {
+  // Get data sent by user (userId, subDialogueId, oratoryId, taskId) and validate
+  let { userId, subDialogueId, oratoryId, taskId, dialogueId } = req.body;
+  // console.log(req.body);
+  if (!userId || !subDialogueId || !oratoryId || !taskId || !dialogueId) {
     respondsSender(
       null,
-      "Please ensure that userId, subDialogueId, and taskId are all included in the body",
+      "Please ensure that userId, subDialogueId, oratoryId, and taskId are all included in the body",
       ResponseCode.badRequest,
       res
     );
     return; // Return to prevent further execution
   }
 
+  if (subDialogueId.includes("null")) {
+    subDialogueId = null;
+  }
+  if (oratoryId.includes("null")) {
+    oratoryId = null;
+  }
+  if (dialogueId.includes("null")) {
+    dialogueId = null;
+  }
+
   try {
     // Update subDialogue status to skipped
-    const fetchUserSubDialogue = await subDialogue.findById(subDialogueId);
-    if (fetchUserSubDialogue) {
-      fetchUserSubDialogue.skippedStatus = true;
-      await fetchUserSubDialogue.save();
+    let fetchSkippedTask;
+    if (subDialogueId !== null) {
+      fetchSkippedTask = await subDialogue.findById(subDialogueId);
     } else {
-      respondsSender(
-        null,
-        "SubDialogue not found",
-        ResponseCode.badRequest,
-        res
-      );
+      fetchSkippedTask = await Oratory.findById(oratoryId);
+    }
+    if (fetchSkippedTask) {
+      fetchSkippedTask.skippedStatus = true;
+      await fetchSkippedTask.save();
+    } else {
+      respondsSender(null, "Task not found", ResponseCode.badRequest, res);
     }
 
     // Update user task status to "Skipped"
@@ -383,19 +453,38 @@ const getMeter = asyncHandler(async (req, res) => {
   // Collect userId
   const userId = req.params.userId;
   // Fetch number of all tasks assigned to user.
-  const totalTasks = await UserTask.countDocuments({ userId: userId });
-  // Fetch number of all done user tasks.
-  const doneTasks = await UserTask.countDocuments({
-    userId: userId,
-    taskStatus: "Done",
-  });
+  const tasks = await UserTask.find({ userId: userId });
+  const totalTasks = tasks.length;
+
+  // Fetch all done tasks assigned to user
+  const doneTasks = tasks.filter((task) => task.taskStatus === DONE).length;
+
   const result = {
     totalTasks,
     doneTasks,
   };
+
   respondsSender(result, "Successful", ResponseCode.successful, res);
 });
 
+// Moses work
+const getDialogue = asyncHandler(async (req, res) => {
+  //select all
+  respondsSender(null, "Display Dialog csv", ResponseCode.successful, res);
+});
+
+const getOratory = asyncHandler(async (req, res) => {
+  respondsSender(null, "Display Oratory csv", ResponseCode.successful, res);
+});
+
+const getallRecording = asyncHandler(async (req, res) => {
+  respondsSender(
+    null,
+    "Display All Oratory and Dialogues csv",
+    ResponseCode.successful,
+    res
+  );
+});
 
 module.exports = {
   saveRecording,
@@ -405,4 +494,7 @@ module.exports = {
   test,
   getMeter,
   saveGeneratedFileInfo,
+  getDialogue,
+  getOratory,
+  getallRecording,
 };

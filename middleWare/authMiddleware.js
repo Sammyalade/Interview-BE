@@ -1,46 +1,85 @@
-const asynchandler = require("express-async-handler");
+const asyncHandler = require("express-async-handler");
+const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const Token = require("../models/tokenModel");
-const jwt = require("jsonwebtoken");
-const { respondsSender } = require('./respondsHandler');
-const { ResponseCode } = require('../utils/responseCode');
+const { respondsSender } = require("./respondsHandler");
+const { ResponseCode } = require("../utils/responseCode");
 
-    const protect = asynchandler(async(req, res, next) =>{
-        const authHeader = req.headers.authorization;
-       
-        // Check if authorization header is missing
-        if (!authHeader) {
-            respondsSender(null, "Authorization header missing please login", ResponseCode.unAuthorized, res); 
+const protect = (allowedRole) => {
+  return asyncHandler(async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader) {
+      return respondsSender(
+        null,
+        "Authorization header missing please login",
+        ResponseCode.unAuthorized,
+        res
+      );
+    }
+
+    try {
+      const bearerToken = authHeader.split(" ")[1];
+
+      const tokens = await Token.find({ token: bearerToken });
+
+      if (tokens.length === 0) {
+        return respondsSender(
+          null,
+          "Not authorized, Please login: Bad Token",
+          ResponseCode.invalidToken,
+          res
+        );
+      }
+
+      jwt.verify(
+        bearerToken,
+        process.env.JWT_SECRET,
+        async (err, decodedToken) => {
+          if (err) {
+            return respondsSender(
+              null,
+              "Invalid token",
+              ResponseCode.invalidToken,
+              res
+            );
+          } else {
+            req.userId = tokens[0].userId;
+            req.loginStatus = true;
+            req.usertoken = decodedToken;
+
+            try {
+              const user = await User.findOne({ _id: req.userId });
+              if (!user || user.role !== allowedRole) {
+                return respondsSender(
+                  null,
+                  "You are not allowed here",
+                  ResponseCode.noData,
+                  res
+                );
+              }
+
+              next();
+            } catch (error) {
+              return respondsSender(
+                null,
+                `Error: ${error}`,
+                ResponseCode.noData,
+                res
+              );
+            }
+          }
         }
-    
-        try {
+      );
+    } catch (error) {
+      return respondsSender(
+        null,
+        "Not authorized, Please login" + error,
+        ResponseCode.unAuthorized,
+        res
+      );
+    }
+  });
+};
 
-                //splite Bearer away from header
-                const bearerToken = authHeader.split(' ')[1];
-                // Check if token exists in the database 
-                const tokens = await Token.find({token:bearerToken});
-               
-                if (tokens.length === 0) {
-                    respondsSender(null, "Not authorized, Please login: Bad Token", ResponseCode.invalidToken, res); 
-                }
-
-            // Verify token using jwt.verify
-            jwt.verify(bearerToken, process.env.JWT_SECRET, (err, decodedToken) => {
-                if (err) {
-                    respondsSender(null, "Invalid token", ResponseCode.invalidToken, res); 
-                } else {
-                    //save this found user to req id so as to use it in next stage if need be
-                    req.userId= tokens[0].userId;
-                    //change login status true here
-                    req.loginStatus=true;
-                    req.usertoken = decodedToken; // Attach decoded user data to the request object
-                    next(); // Proceed to the next middleware or route handler
-                }
-            });
-        
-        } catch (error) {
-            respondsSender(null, "Not authorized, Please login"+error, ResponseCode.unAuthorized, res); 
-        }
-    });
-
-    module.exports = protect
+module.exports = protect;

@@ -29,6 +29,7 @@ async function uploadFile(
       : fileOutputName;
     `${folderName}`;
     // Check if the folder exists
+    const GCPFilePath = `${process.env.ENVIRONMENT}/${folderName}/${subFolder}/`;
     const [exists] = await bucket.file(folderName).exists();
     if (!exists) {
       // If the folder doesn't exist, create it
@@ -38,7 +39,9 @@ async function uploadFile(
     const retValue = await bucket.upload(file, {
       destination,
     });
-    return retValue;
+
+    const uploadedFileRes = { retValue, GCPFilePath };
+    return uploadedFileRes;
   } catch (error) {
     console.log("Error:", error);
     throw error;
@@ -88,14 +91,20 @@ const uploadToGCS = async (req, res, next) => {
     await fs.writeFile(tempFilePath, req.file.buffer);
 
     // Upload the temporary file
-    const retFile = await uploadFile(
+    const uploadedFileRes = await uploadFile(
       bucketName,
       tempFilePath,
       fileName,
       folderName,
       language
     );
-    req.uploadedFileName = retFile; // Attach filename to request object
+
+    const retValue = uploadedFileRes.retValue;
+    const GCPFilePath = uploadedFileRes.GCPFilePath;
+
+    req.uploadedFileName = retValue; // Attach filename to request object
+    req.fileName = fileName; // Attach filename to request object
+    req.filePath = GCPFilePath;
 
     // Delete the temporary file after upload
     await fs.unlink(tempFilePath);

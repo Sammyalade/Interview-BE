@@ -3,13 +3,16 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 const cors = require("cors");
+const swaggerUi = require("swagger-ui-express");
+const apiDocumentation = require("./docs/swagger-doc");
+
 const userRoute = require("./routes/userRoute");
 const audioRoute = require("./routes/audioRoute");
 const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
 const contactRoute = require("./routes/contactRoute");
 const metadataRoute = require("./routes/metadataRoute");
-const adminRoute = require("./routes/adminRoute")
+const adminRoute = require("./routes/adminRoute");
 // const adminRoute = require("./routes/adminRoute");
 
 const feedbackRoute = require("./routes/feedbackRoute");
@@ -41,6 +44,9 @@ app.use(
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// documentation endpoint
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(apiDocumentation));
+
 //Route Middleware
 app.use("/api/users", userRoute);
 app.use("/api/audio", audioRoute);
@@ -50,9 +56,8 @@ app.use("/api/feedback", feedbackRoute);
 app.use("/api/dialogue", dialogueRoute);
 app.use("/api/metadataGenerator", metadataRoute);
 app.use("/api/task", taskRoute);
-app.use("/api/admin", adminRoute)
+app.use("/api/admin", adminRoute);
 // app.use("/api/admin", adminRoute);
-
 
 // Routes
 app.get("/", (req, res) => {
@@ -97,6 +102,7 @@ mongoose
     app.listen(PORT, () => {
       console.log(`Server running on Port ${PORT}`);
     });
+    // swaggerDocs(app, PORT);
   })
   .catch((error) => {
     console.log(error);

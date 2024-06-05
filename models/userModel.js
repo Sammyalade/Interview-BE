@@ -52,15 +52,15 @@ const userSchema = mongoose.Schema(
       minLength: [6, "password must be up to 6 characters"],
       //  maxLength: [23, "Password must not be more than 23 characters"],
     },
-    language: {
-      type: String,
-      default: "Not Specified",
-    },
+    // language: {
+    //   type: String,
+    //   default: "Not Specified",
+    // },
     role: {
       type: String,
-      require:true,
+      require: true,
       default: "USER",
-       enum: [ROLE.ADMIN, ROLE.ANNOTATOR, ROLE.QA, ROLE.USER]
+      enum: [ROLE.ADMIN, ROLE.ANNOTATOR, ROLE.QA, ROLE.USER],
     },
     verified: {
       type: Boolean,

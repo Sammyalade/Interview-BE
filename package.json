@@ -30,5 +30,9 @@
     "nodemailer": "^6.8.0",
     "nodemon": "^3.0.3",
     "url-polyfill": "^1.1.12"
+  },
+  "devDependencies": {
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   }
 }

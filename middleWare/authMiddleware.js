@@ -9,14 +9,15 @@ const protect = (usertype) => {
   return asyncHandler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
     let allowedRole;
-      if (usertype==="specialUser"){
-        allowedRole=req.body.role;
-      }
-      else{
-        usertype= usertype;
-      }
-
-
+    if (usertype==="specialUser" && !req.body.role){
+      return respondsSender(
+        null,
+        "Role not sent as role:'roleWhatever' in the body",
+        ResponseCode.unAuthorized,
+        res
+      );
+    }
+    usertype==="specialUser" ? allowedRole=req.body.role.toUpperCase() : allowedRole= usertype.toUpperCase();
     if (!authHeader) {
       return respondsSender(
         null,

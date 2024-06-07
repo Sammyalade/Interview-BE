@@ -19,7 +19,7 @@ const ROLE = {
 };
 const NUM_TO_ASSIGN = 65;
 const BUCKET_NAME = "front-end-audio-storage-awarri";
-const BUCKET_FOLDER_NAME = "Generated Dialogues/";
+const BUCKET_FOLDER_NAME = "GenDia060724/LatestGeneratedDialogues/";
 
 module.exports = {
   UNREAD,

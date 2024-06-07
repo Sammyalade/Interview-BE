@@ -166,7 +166,8 @@ const registerUser = asynchandler(async (req, res) => {
     await sendEmail(subject, message, send_to, sent_from);
 
     const response = {
-      message: "Verification Email Sent",
+      user:user,
+      message: "Registration Successful, Verification Email Sent",
     };
 
     // res.status(200).json("Succesful Chief");
@@ -245,7 +246,7 @@ const loginUser = asynchandler(async (req, res) => {
   // User exists, check if password is correct
   const passwordIsCorrect = await bcrypt.compare(password, user.password);
   //if user role is a user allow next phase of auth
-  if (user.role == userRole) {
+  if (user.role == userRole && user.role !="USER") {
     if (user && passwordIsCorrect) {
       if (user.verified == true) {
         //Generate Login Token

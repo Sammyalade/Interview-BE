@@ -5,9 +5,17 @@ const Token = require("../models/tokenModel");
 const { respondsSender } = require("./respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 
-const protect = (allowedRole) => {
+const protect = (usertype) => {
   return asyncHandler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
+    let allowedRole;
+      if (usertype==="specialUser"){
+        allowedRole=req.body.role;
+      }
+      else{
+        usertype= usertype;
+      }
+
 
     if (!authHeader) {
       return respondsSender(

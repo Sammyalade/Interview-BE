@@ -9,20 +9,19 @@ const {
   getSkippedTasks,
   getSingleTask,
 } = require("../controllers/dialogueController");
-const {  fetchDialogues } = require("../utils/readContent");
+const { fetchDialogues } = require("../utils/readContent");
 const protect = require("../middleWare/authMiddleware");
 
 const { upload } = require("../utils/fileUpload");
 
 router.get("/", protect("USER"), getDialogue);
-router.get("/getusertasks/:userId",protect("USER"), getUserTasks);
-router.get("/getsingletask/:userId",protect("USER"), getSingleTask);
-router.get("/getskippedtasks/:userId",protect("USER"), getSkippedTasks);
-router.get("/getundonetasks/:userId",protect("USER"), getUndoneTasks);
-router.get("/getdonetasks/:userId",protect("USER"), getDoneTasks);
+router.get("/getusertasks/:userId", protect("USER"), getUserTasks);
+router.get("/getsingletask/:userId", protect("USER"), getSingleTask);
+router.get("/getskippedtasks/:userId", protect("USER"), getSkippedTasks);
+router.get("/getundonetasks/:userId", protect("USER"), getUndoneTasks);
+router.get("/getdonetasks/:userId", protect("USER"), getDoneTasks);
 
 router.get("/fetchgcp", fetchDialogues); //read all doc from GCP to DB
- 
 
 router.post("/generate", upload.single("dialogueDoc"), createDialogueWithDoc); //route for csv upload
 

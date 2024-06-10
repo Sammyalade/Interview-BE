@@ -5,10 +5,19 @@ const Token = require("../models/tokenModel");
 const { respondsSender } = require("./respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 
-const protect = (allowedRole) => {
+const protect = (usertype) => {
   return asyncHandler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
-
+    let allowedRole;
+    if (usertype==="specialUser" && !req.body.role){
+      return respondsSender(
+        null,
+        "Role not sent as role:'roleWhatever' in the body",
+        ResponseCode.unAuthorized,
+        res
+      );
+    }
+    usertype==="specialUser" ? allowedRole=req.body.role.toUpperCase() : allowedRole= usertype.toUpperCase();
     if (!authHeader) {
       return respondsSender(
         null,

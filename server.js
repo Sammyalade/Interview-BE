@@ -7,6 +7,7 @@ const swaggerUi = require("swagger-ui-express");
 const apiDocumentation = require("./docs/swagger-doc");
 
 const userRoute = require("./routes/userRoute");
+const authRoute = require("./routes/authRoute");
 const audioRoute = require("./routes/audioRoute");
 const dialogueRoute = require("./routes/dialogueRoute");
 const wordBankRoute = require("./routes/wordBankRoute");
@@ -53,6 +54,7 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(apiDocumentation));
 
 //Route Middleware
 app.use("/api/users", userRoute);
+app.use("/api/auth", authRoute);
 app.use("/api/audio", audioRoute);
 app.use("/api/word", wordBankRoute);
 app.use("/api/contactus", contactRoute);

@@ -36,22 +36,22 @@ const apiDocumentation = {
   ],
   tags: [
     {
-      name: "Users Onboarding",
+      name: "Admin Onboarding",
       description: "Api for users",
     },
   ],
 
   paths: {
-    "/api/users/register": {
+    "/api/auth/register": {
       post: registerDocs,
     },
-    "/api/users/login": {
+    "/api/auth/login": {
       post: loginDocs,
     },
-    "/api/users/verify/{id}": {
+    "/api/auth/verify/{id}": {
       get: verifyUserDocs,
     },
-    "/api/users/getuser": {
+    "/api/auth/getuser": {
       get: getUserDocs,
     },
   },

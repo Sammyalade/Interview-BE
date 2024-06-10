@@ -157,9 +157,8 @@ const registerUser = asynchandler(async (req, res) => {
     await sendEmail(subject, message, send_to, sent_from);
     console.log(verifyUrl);
     const response = {
+      user,
       message: "Verification Email Sent",
-      url: verifyUrl,
-      mail: message,
     };
 
     //res.status(200).json(response);

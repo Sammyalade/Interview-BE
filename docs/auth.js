@@ -1,6 +1,6 @@
 const registerDocs = {
-  tags: ["Users Onboarding"],
-  description: "Create a new user",
+  tags: ["Admin Onboarding"],
+  description: "Create a new admin user",
   operationId: "createUser",
   security: [
     {
@@ -22,14 +22,35 @@ const registerDocs = {
       description: "User created successfully!",
       content: {
         "application/json": {
-          schema: {
+           schema: {
             type: "object",
             properties: {
               data: {
-                type: "string",
-                example: "null",
+                example: {
+                  user: {
+                    type: "object",
+                    properties: {
+                      _id: {
+                        type: "string",
+                        example: "60564fcb544047cdc3844818",
+                      },
+                      firstname: { type: "string", example: "John" },
+                      lastname: { type: "string", example: "Snow" },
+                      email: { type: "string", example: "john.snow@email.com" },
+                      gender: { type: "string", example: "male" },
+                      dateOfBirth: {
+                        type: "string",
+                        format: "date",
+                        example: "1990-01-01",
+                      },
+                      accent: { type: "string", example: "American" },
+                    },
+                  },
+                },
+
+                message: { type: "string", example: "Registration Succesful" },
               },
-              responseMessage: { type: "string", example: "Successful" },
+              responseMessage: { type: "string", example: "Login Successful" },
               responseCode: { type: "number", example: 200 },
             },
           },
@@ -133,7 +154,7 @@ const createRegisterUserBody = {
 };
 
 const loginDocs = {
-  tags: ["Users Onboarding"],
+  tags: ["Admin Onboarding"],
   description: "Login a user",
   operationId: "loginUser",
   requestBody: {
@@ -269,7 +290,7 @@ const createLoginUserBody = {
 };
 
 const verifyUserDocs = {
-  tags: ["Users Onboarding"],
+  tags: ["Admin Onboarding"],
   description: "Verify a user by ID",
   operationId: "verifyUser",
   parameters: [
@@ -361,7 +382,7 @@ const verifyUserDocs = {
 };
 
 const getUserDocs = {
-  tags: ["Users Onboarding"],
+  tags: ["Admin Onboarding"],
   description: "Get user profile data",
   operationId: "getUser",
   security: [

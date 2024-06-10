@@ -44,6 +44,10 @@ app.use(
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// Route to serve JSON documentation
+app.get("/api/docs/json", (req, res) => {
+  res.json(apiDocumentation);
+});
 // documentation endpoint
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(apiDocumentation));
 

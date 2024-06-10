@@ -22,21 +22,16 @@ async function main() {
 
     // Process each file
     for (const file of files) {
-     // Extract folder and file names
-     const [_, ...pathArray] = await file.name.split("/");
-     const relativePathArray = pathArray.slice(2);
+      // Extract folder and file names
+      const [_, ...pathArray] = await file.name.split("/");
+      const folder = await pathArray[1];
+      const fileName = await pathArray?.slice(-1)[0];
 
+      console.log("Folder >>", folder);
+      console.log("FileName >>", fileName);
 
-     // Extract the folder name after "LatestGeneratedDialogues/"
-     const folder = relativePathArray.slice(0, -1).join("/");
-
-
-     // Extract the file name
-     const fileName = relativePathArray.slice(-1)[0];
-
-
-     // Read file content
-     const content = await readFileContent(file);
+      // Read file content
+      const content = await readFileContent(file);
 
       // Output content as JSON
       dialogues.push({

@@ -7,11 +7,11 @@ const protect = require("../middleWare/authMiddleware");
 
 
 
-router.post("/create", protect("USER"), createAudio)
+router.post("/create", protect, createAudio)
 // router.patch("/:id",  upload.single("audio"), updateAudio) //upload.array for multiple file 
-router.get("/", protect("USER"), getAudios); 
-router.post("/singleaudio", protect("USER"), getAudio); 
-router.delete("/:id", protect("USER"), deleteAudio) 
+router.get("/", protect, getAudios); 
+router.post("/singleaudio", protect, getAudio); 
+router.delete("/:id", protect, deleteAudio) 
 
 
 module.exports = router 

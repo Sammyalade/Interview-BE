@@ -1,5 +1,5 @@
 const asynchandler = require("express-async-handler");
-const User = require("../models/userModel");
+const User = require("../models/awarriUserModel");
 const DAstatus = require("../models/dAssignmentStatus");
 const Token = require("../models/tokenModel");
 const AnnotatorAuditorStatus = require("../models/annotatorAuditorStatusModel");
@@ -12,7 +12,6 @@ const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
 const { adminFrontEndUrl } = require("../utils/frontEndUrl");
-const { accents } = require("../utils/allAccents");
 const { ROLE, USER, DISABLED, ACTIVE, REMOVED } = require("../utils/constant");
 
 const generateToken = (id) => {
@@ -38,40 +37,17 @@ function generateRandomString(length) {
 
 //this function isnt a permanent script  it can be writen and rewritten to effect any update on existing collected user data
 
-const runUserUpdate = asynchandler(async (req, res) => {
-  try {
-    const result = await User.updateMany(
-      { role: { $exists: false } },
-      { $set: { role: "USER" } }
-    );
 
-    console.log(`users updated.`);
-    result &&
-      respondsSender(null, `users updated.`, ResponseCode.successful, res);
-  } catch (error) {
-    result &&
-      respondsSender(
-        null,
-        `Error: ${error}`,
-        ResponseCode.internalServerError,
-        res
-      );
-  }
-});
 
 // Register user
 const registerUser = asynchandler(async (req, res) => {
+
   try {
     const {
       firstname,
       lastname,
       email,
-      gender,
-      dateOfBirth,
-      accent,
-      consent,
       password,
-      role,
     } = req.body;
 
     // Validation Check
@@ -79,16 +55,11 @@ const registerUser = asynchandler(async (req, res) => {
       !firstname ||
       !lastname ||
       !email ||
-      !gender ||
-      !dateOfBirth ||
-      !accent ||
-      !consent ||
-      !password ||
-      !role
+      !password
     ) {
       respondsSender(
         null,
-        "Please fill in all required fields, firstname, lastname, email, gender, dateOfBirth, accent, consent, password, role",
+        "Please fill in all required fields, firstname, lastname, email, password",
         ResponseCode.badRequest,
         res
       );
@@ -105,20 +76,7 @@ const registerUser = asynchandler(async (req, res) => {
       );
     }
     //normal user should not be allowed
-    if (
-      role.toUpperCase() != ROLE.ADMIN &&
-      role.toUpperCase() != ROLE.ANNOTATOR &&
-      role.toUpperCase() != ROLE.QA
-    ) {
-      respondsSender(
-        null,
-        "normal user not allowed to register here",
-        ResponseCode.badRequest,
-        res
-      );
-    }
     const lowerEmail = email.toLowerCase();
-    const userRole = role.toUpperCase();
     // Validation check if user email already exists
     const userExists = await User.findOne({ email: lowerEmail });
     if (userExists) {
@@ -135,13 +93,9 @@ const registerUser = asynchandler(async (req, res) => {
       firstname,
       lastname,
       email: lowerEmail,
-      gender,
-      dateOfBirth,
-      accent,
-      consent,
       password,
       verified: false,
-      role: userRole,
+      role: ROLE.ANNOTATOR,
     });
 
     // User was successfully created, perform your desired action here
@@ -220,19 +174,18 @@ const verifyUser = asynchandler(async (req, res) => {
 
 //Login user
 const loginUser = asynchandler(async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
 
   //validate Request
-  if (!email || !password || !role) {
+  if (!email || !password ) {
     respondsSender(
       null,
-      "Please Add Email, password and role(QA, annotator or admin)",
+      "Please Add Email, password",
       ResponseCode.badRequest,
       res
     );
   }
   const lowerEmail = email.toLowerCase();
-  const userRole = role.toUpperCase();
   //Check if user Exists
   const user = await User.findOne({ email: lowerEmail });
   if (!user) {
@@ -246,7 +199,7 @@ const loginUser = asynchandler(async (req, res) => {
   // User exists, check if password is correct
   const passwordIsCorrect = await bcrypt.compare(password, user.password);
   //if user role is a user allow next phase of auth
-  if (user.role == userRole && user.role !="USER") {
+
     if (user && passwordIsCorrect) {
       if (user.verified == true) {
         //Generate Login Token
@@ -267,9 +220,6 @@ const loginUser = asynchandler(async (req, res) => {
             firstname: user.firstname,
             lastname: user.lastname,
             email: user.email,
-            gender: user.gender,
-            dateOfBirth: user.dateOfBirth,
-            accent: user.accent,
             role: user.role,
           },
           token: token,
@@ -315,15 +265,7 @@ const loginUser = asynchandler(async (req, res) => {
     } else {
       respondsSender(null, "Wrong Password", ResponseCode.noData, res);
     }
-  } else {
-    //this is not a user but a qa, or others
-    respondsSender(
-      null,
-      `Please only Admin, Annotators or Auditors(QA) are allowed here. It seems you are not ${role}, please check in with your proper role`,
-      ResponseCode.unAuthorized,
-      res
-    );
-  }
+  
 });
 
 //Logout User
@@ -389,9 +331,6 @@ const getUser = asynchandler(async (req, res) => {
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      gender: user.gender,
-      dateOfBirth: user.dateOfBirth,
-      accent: user.accent,
       role: user.role,
     };
     respondsSender(
@@ -414,32 +353,6 @@ const loginStatus = asynchandler(async (req, res) => {
   respondsSender(null, true, ResponseCode.successful, res);
 });
 
-//Update User
-const updateUser = asynchandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (user) {
-    const { _id, name, email, photo, phone, bio } = user;
-    user.email = email;
-    user.name = req.body.name || name;
-    user.phone = req.body.phone || phone;
-    user.bio = req.body.bio || bio;
-    user.photo = req.body.photo || photo;
-
-    const updatedUser = await user.save();
-    const user = {
-      _id: updatedUser._id,
-    };
-    respondsSender(
-      user,
-      "User Info updated successfully",
-      ResponseCode.successful,
-      res
-    );
-  } else {
-    respondsSender(null, "User Not Found", ResponseCode.noData, res);
-  }
-});
 
 // Change Password
 const changePassword = asynchandler(async (req, res) => {
@@ -606,11 +519,7 @@ const resetPassword = asynchandler(async (req, res) => {
   );
 });
 
-// Get Accent of User
-const getAccent = asynchandler(async (req, res) => {
-  //  const allAccents
-  respondsSender(accents, "Successful", ResponseCode.successful, res);
-});
+
 
 module.exports = {
   registerUser,
@@ -618,11 +527,8 @@ module.exports = {
   logout,
   getUser,
   loginStatus,
-  updateUser,
   changePassword,
   forgotPassword,
   resetPassword,
   verifyUser,
-  getAccent,
-  runUserUpdate,
 };

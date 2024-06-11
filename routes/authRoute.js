@@ -3,32 +3,28 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  registerUser,
+   registerUser,
   loginUser,
   logout,
+  getUser,
   loginStatus,
-  updateUser,
   changePassword,
   forgotPassword,
   resetPassword,
-  getUser,
   verifyUser,
-  getAccent, runUserUpdate,
+
 } = require("../controllers/authController");
-const protect = require("../middleWare/authMiddleware");
+const adminProtect = require("../middleWare/adminAuthMiddleware");
 
 
 router.post("/register", registerUser);
-router.get("/verify/:id/", verifyUser);
-router.get("/getaccent", getAccent);
 router.post("/login", loginUser);
 router.post("/logout", logout);
-router.get("/getuser", protect("specialUser"), getUser);
-router.get("/loginstatus", protect("specialUser"), loginStatus);
-router.patch("/updateuser", protect("specialUser"), updateUser);
-router.patch("/changepassword", protect("specialUser"), changePassword);
+router.get("/getuser", adminProtect, getUser);
+router.get("/loginstatus", adminProtect, loginStatus);
+router.patch("/changepassword", adminProtect, changePassword);
 router.post("/forgotpassword", forgotPassword);
 router.put("/resetpassword/", resetPassword);
-router.get("/runupdate/", runUserUpdate);
+router.get("/verify/:id/", verifyUser);
 
 module.exports = router;

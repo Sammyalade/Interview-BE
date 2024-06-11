@@ -24,8 +24,11 @@ async function main() {
     for (const file of files) {
       // Extract folder and file names
       const [_, ...pathArray] = await file.name.split("/");
-      const folder = await pathArray?.slice(0, -1).join("/");
+      const folder = await pathArray[1];
       const fileName = await pathArray?.slice(-1)[0];
+
+      console.log("Folder >>", folder);
+      console.log("FileName >>", fileName);
 
       // Read file content
       const content = await readFileContent(file);

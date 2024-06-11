@@ -123,32 +123,11 @@ const createRegisterUserBody = {
     email: {
       type: "string",
       example: "john.snow@email.com",
-    },
-    gender: {
-      type: "string",
-      example: "male",
-    },
-    dateOfBirth: {
-      type: "string",
-      format: "date",
-      example: "1990-01-01",
-    },
-    accent: {
-      type: "string",
-      example: "American",
-    },
-    consent: {
-      type: "boolean",
-      example: true,
-    },
+    },  
     password: {
       type: "string",
       description: "unencrypted user's password",
       example: "Password.2024$",
-    },
-    role: {
-      type: "string",
-      example: "ADMIN",
     },
   },
 };
@@ -453,19 +432,6 @@ const getUserBody = {
     email: {
       type: "string",
       example: "john.doe@email.com",
-    },
-    gender: {
-      type: "string",
-      example: "male",
-    },
-    dateOfBirth: {
-      type: "string",
-      format: "date",
-      example: "1990-01-01",
-    },
-    accent: {
-      type: "string",
-      example: "British",
     },
     role: {
       type: "string",

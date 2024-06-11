@@ -45,7 +45,7 @@ const awarriUserSchema = mongoose.Schema(
 );
 
 //encrypt password before saving to DB
-userSchema.pre("save", async function (next) {
+awarriUserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }

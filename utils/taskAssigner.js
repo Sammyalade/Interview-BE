@@ -29,7 +29,6 @@ const taskAssigner = async (numToAssign, userId) => {
         for (let i = 1; i <= allSubDialogues.length; i++) {
           selectedSubDialogues.push(allSubDialogues[i]);
         }
-        g;
       }
 
       // Initialize a variable to keep track of the alternating assignment status

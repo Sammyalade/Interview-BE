@@ -1,9 +1,13 @@
 const fs = require("fs").promises;
 const path = require("path");
 const { Storage } = require("@google-cloud/storage");
+const ffmpeg = require("fluent-ffmpeg");
+const ffmpegPath = require("ffmpeg-static");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("./responseCode");
 const dotenv = require("dotenv").config();
+
+ffmpeg.setFfmpegPath(ffmpegPath);
 
 const projectId = process.env.PROJECT_ID;
 const keyFilename = "./service.json"; //process.env.KEYFILENAME;
@@ -74,6 +78,11 @@ const fileNameGenerator = () => {
 const uploadToGCS = async (req, res, next) => {
   const fileName = `${fileNameGenerator()}_${req.file.originalname}`;
   const tempFilePath = path.join(__dirname, "../temp", fileName);
+  const tempConvertedFilePath = path.join(
+    __dirname,
+    "../temp",
+    `${fileName}.wav`
+  );
 
   const { task, language } = req.body;
   if (!task) {
@@ -90,11 +99,20 @@ const uploadToGCS = async (req, res, next) => {
     // Write the buffer to a temporary file
     await fs.writeFile(tempFilePath, req.file.buffer);
 
-    // Upload the temporary file
+    // Convert the temporary file from webm to wav
+    await new Promise((resolve, reject) => {
+      ffmpeg(tempFilePath)
+        .toFormat("wav")
+        .on("end", resolve)
+        .on("error", reject)
+        .save(tempConvertedFilePath);
+    });
+
+    // Upload the converted file
     const uploadedFileRes = await uploadFile(
       bucketName,
-      tempFilePath,
-      fileName,
+      tempConvertedFilePath,
+      `${fileName}.wav`,
       folderName,
       language
     );
@@ -106,8 +124,9 @@ const uploadToGCS = async (req, res, next) => {
     req.fileName = fileName; // Attach filename to request object
     req.filePath = GCPFilePath;
 
-    // Delete the temporary file after upload
+    // Delete the temporary files after upload
     await fs.unlink(tempFilePath);
+    await fs.unlink(tempConvertedFilePath);
 
     next();
   } catch (error) {

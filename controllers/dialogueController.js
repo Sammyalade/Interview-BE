@@ -16,7 +16,7 @@ const {
   SKIPPED,
 } = require("../utils/constant");
 
-const numToAssign = NUM_TO_ASSIGN;
+// const numToAssign = NUM_TO_ASSIGN;
 const getDialogue = asyncHandler(async (req, res) => {
   respondsSender(
     null,
@@ -179,6 +179,7 @@ const getUserTasks = asyncHandler(async (req, res) => {
 
     const userTasks = await UserTask.find({ userId });
     // Extract subDialogueIds and taskStages from userTasks
+    // console.log("User Task length>>>>>", userTasks?.length);
 
     // Create an array containing tasks with their corresponding task stages and types
     const userTaskWithTaskStages = userTasks.map((task) => ({
@@ -371,7 +372,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
       // Check if user has ever been assigned tasks or not
       const everAssigned = await DAstatus.findOne({ userId, status: true });
       if (!everAssigned) {
-        taskAssigner(numToAssign, userId);
+        await taskAssigner(NUM_TO_ASSIGN, userId);
         return respondsSender(
           null,
           "No tasks has been assigned to user.",
@@ -381,7 +382,7 @@ const getSingleTask = asyncHandler(async (req, res) => {
       }
 
       //assign new Task of either oratory or sub dialog base on previous assignment
-      taskAssigner(numToAssign, userId);
+      await taskAssigner(NUM_TO_ASSIGN, userId);
 
       const currentDateTime = new Date();
       const formattedDateTime = currentDateTime.toLocaleString();

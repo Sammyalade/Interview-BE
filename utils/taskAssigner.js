@@ -155,14 +155,14 @@ const taskAssigner = async (numToAssign, userId) => {
     // Check the taskType and decide whether to assign dialogue or oratory tasks
     if (taskType === ORATORY) {
       // Assign oratory tasks
-      dialogueAssigner(numToAssign, userId);
+      await dialogueAssigner(numToAssign, userId);
     } else {
       // Assign dialogue tasks
-      oratoryAssigner(numToAssign, userId);
+      await oratoryAssigner(numToAssign, userId);
     }
   } else {
     // No document found for the user, assign dialogue tasks
-    dialogueAssigner(numToAssign, userId);
+    await dialogueAssigner(numToAssign, userId);
   }
 };
 

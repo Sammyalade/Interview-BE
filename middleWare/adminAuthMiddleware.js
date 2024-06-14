@@ -1,11 +1,11 @@
 const asyncHandler = require("express-async-handler");
 const jwt = require("jsonwebtoken");
-const User = require("../models/userModel");
+const User = require("../models/awarriUserModel");
 const Token = require("../models/tokenModel");
 const { respondsSender } = require("./respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 
-const protect = () => {
+const adminProtect = () => {
   return asyncHandler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
@@ -82,4 +82,4 @@ const protect = () => {
   });
 };
 
-module.exports = protect;
+module.exports = adminProtect;

@@ -222,7 +222,7 @@ const arrayReducer = (data) => {
       userLastname: lastname,
       userEmail: email,
       userGender: gender,
-      userDateOfBirth: convertedDOB,
+      userAge: convertedDOB,
       userAccent: accent,
     };
   });
@@ -250,7 +250,7 @@ const csvWriter = async (data) => {
     "userLastname",
     "userEmail",
     "userGender",
-    "userDateOfBirth",
+    "userAge",
     "userAccent",
   ];
   const json2csvParser = new Parser({ fields });

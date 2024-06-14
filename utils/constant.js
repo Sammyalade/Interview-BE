@@ -17,9 +17,12 @@ const ROLE = {
   QA: "QA",
   ANNOTATOR: "ANNOTATOR",
 };
-const NUM_TO_ASSIGN = 30;
-const FOLDER_PREFIX = "Generated Dialogues/";
-
+const NUM_TO_ASSIGN = 20;
+const BUCKET_NAME = "front-end-audio-storage-awarri";
+// const BUCKET_FOLDER_NAME = "Test Dialogue/";
+// const BUCKET_FOLDER_NAME = "Test Dialogue/";
+const BUCKET_FOLDER_NAME = "GenDia060724/LatestGeneratedDialogues/";
+// const BUCKET_FOLDER_NAME = "Generated Dialogues/";
 module.exports = {
   UNREAD,
   ORATORY,
@@ -36,5 +39,6 @@ module.exports = {
   NUM_TO_ASSIGN,
   SKIPPED,
   DONE,
-  FOLDER_PREFIX,
+  BUCKET_NAME,
+  BUCKET_FOLDER_NAME,
 };

@@ -3,8 +3,6 @@ const { contactUs } = require("../controllers/contactController");
 const router = express.Router();
 const protect = require("../middleWare/authMiddleware");
 
-router.post("/", protect("USER"), contactUs); 
-
-
+router.post("/", protect(), contactUs);
 
 module.exports = router;

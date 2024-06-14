@@ -9,12 +9,13 @@ const { Storage } = require("@google-cloud/storage");
 
 const storage = new Storage();
 const mammoth = require("mammoth");
+const { BUCKET_FOLDER_NAME } = require("./constant");
 
 async function main() {
   try {
     // List all files in the "Test Dialogue" folder and its subfolders
     const [files] = await storage.bucket(process.env.BUCKET_NAME).getFiles({
-      prefix: "Test Dialogue/", // Filter by folder path
+      prefix: BUCKET_FOLDER_NAME, // Filter by folder path
     });
 
     const dialogues = [];
@@ -23,8 +24,11 @@ async function main() {
     for (const file of files) {
       // Extract folder and file names
       const [_, ...pathArray] = await file.name.split("/");
-      const folder = await pathArray?.slice(0, -1).join("/");
+      const folder = await pathArray[1];
       const fileName = await pathArray?.slice(-1)[0];
+
+      console.log("Folder >>", folder);
+      console.log("FileName >>", fileName);
 
       // Read file content
       const content = await readFileContent(file);

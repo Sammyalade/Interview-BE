@@ -155,11 +155,10 @@ const registerUser = asynchandler(async (req, res) => {
 
     // Send the verification email
     await sendEmail(subject, message, send_to, sent_from);
-    console.log(verifyUrl);
+    // console.log(verifyUrl);
     const response = {
+      user,
       message: "Verification Email Sent",
-      url: verifyUrl,
-      mail: message,
     };
 
     //res.status(200).json(response);
@@ -274,10 +273,10 @@ const loginUser = asynchandler(async (req, res) => {
           status: true,
         });
 
-        const numToAssign = NUM_TO_ASSIGN;
+        // const numToAssign = NUM_TO_ASSIGN;
         if (!foundDaStatus) {
           // Assign Dialogue Tasks
-          taskAssigner(numToAssign, user._id);
+          await taskAssigner(NUM_TO_ASSIGN, user._id);
         } else {
           // check if user has finished task assigned to them, and assign new task
           //fecth user task where status is undone,
@@ -292,7 +291,7 @@ const loginUser = asynchandler(async (req, res) => {
             // If there are no undone tasks found for the user, return an appropriate response
             if (userTasks.length === 0) {
               //check the last assigned task and assign new task (dialog or oratory)
-              taskAssigner(numToAssign, user._id);
+              await taskAssigner(NUM_TO_ASSIGN, user._id);
             }
           } catch (error) {
             // Handle errors

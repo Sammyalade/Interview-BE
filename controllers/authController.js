@@ -1,9 +1,9 @@
 const asynchandler = require("express-async-handler");
-const User = require("../models/userModel");
+const User = require("../models/awarriUserModel");
 const DAstatus = require("../models/dAssignmentStatus");
 const Token = require("../models/tokenModel");
-const AnnotatorAuditorStatus = require("../models/AnnotatorAuditorStatusModel");
-const AuthLoginStatus = require("../models/LoginStatusModel");
+const AnnotatorAuditorStatus = require("../models/annotatorAuditorStatusModel");
+const AuthLoginStatus = require("../models/loginStatusModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
@@ -11,8 +11,7 @@ const sendEmail = require("../utils/sendEmail");
 const { respondsSender } = require("../middleWare/respondsHandler");
 const { ResponseCode } = require("../utils/responseCode");
 const dotenv = require("dotenv").config();
-const {  adminFrontEndUrl } = require("../utils/frontEndUrl");
-const {accents}= require('../utils/allAccents');
+const { adminFrontEndUrl } = require("../utils/frontEndUrl");
 const { ROLE, USER, DISABLED, ACTIVE, REMOVED } = require("../utils/constant");
 
 const generateToken = (id) => {
@@ -38,45 +37,17 @@ function generateRandomString(length) {
 
 //this function isnt a permanent script  it can be writen and rewritten to effect any update on existing collected user data
 
-const runUserUpdate = asynchandler(async (req, res)=>{
-  try {
-    const result = await User.updateMany(
-      { role: { $exists: false } },
-      { $set: { role: 'USER' } }
-    );
-    
-    console.log(`users updated.`);
-     result &&  respondsSender(
-      null,
-      `users updated.`,
-      ResponseCode.successful,
-      res
-    );
-    
-  } catch (error) {
-    result &&  respondsSender(
-      null,
-      `Error: ${error}`,
-      ResponseCode.internalServerError,
-      res
-    );
-  }
 
-})
 
 // Register user
 const registerUser = asynchandler(async (req, res) => {
+
   try {
     const {
       firstname,
       lastname,
       email,
-      gender,
-      dateOfBirth,
-      accent,
-      consent,
       password,
-      role
     } = req.body;
 
     // Validation Check
@@ -84,41 +55,28 @@ const registerUser = asynchandler(async (req, res) => {
       !firstname ||
       !lastname ||
       !email ||
-      !gender ||
-      !dateOfBirth ||
-      !accent ||
-      !consent ||
-      !password ||
-      !role
+      !password
     ) {
       respondsSender(
         null,
-        "Please fill in all required fields, firstname, lastname, email, gender, dateOfBirth, accent, consent, password, role",
+        "Please fill in all required fields, firstname, lastname, email, password",
         ResponseCode.badRequest,
         res
       );
     }
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/;
     //ensure password is strong
     if (!passwordRegex.test(password)) {
-    respondsSender(
+      respondsSender(
         null,
         "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one digit, and one special character.",
         ResponseCode.badRequest,
         res
-    );
+      );
     }
     //normal user should not be allowed
-    if (role.toUpperCase()!=ROLE.ADMIN && role.toUpperCase()!=ROLE.ANNOTATOR && role.toUpperCase()!=ROLE.QA) {
-    respondsSender(
-        null,
-        "normal user not allowed to register here",
-        ResponseCode.badRequest,
-        res
-    );
-    }    
     const lowerEmail = email.toLowerCase();
-    const userRole= role.toUpperCase();
     // Validation check if user email already exists
     const userExists = await User.findOne({ email: lowerEmail });
     if (userExists) {
@@ -135,15 +93,10 @@ const registerUser = asynchandler(async (req, res) => {
       firstname,
       lastname,
       email: lowerEmail,
-      gender,
-      dateOfBirth,
-      accent,
-      consent,
       password,
       verified: false,
-      role:userRole
+      role: ROLE.ANNOTATOR,
     });
-
 
     // User was successfully created, perform your desired action here
     const randomText = generateRandomString(12);
@@ -167,12 +120,11 @@ const registerUser = asynchandler(async (req, res) => {
     await sendEmail(subject, message, send_to, sent_from);
 
     const response = {
-      message: "Verification Email Sent",
-      url: verifyUrl,
-      mail: message,
+      user:user,
+      message: "Registration Successful, Verification Email Sent",
     };
 
-    //res.status(200).json(response);
+    // res.status(200).json("Succesful Chief");
     respondsSender(response, "successful", ResponseCode.successful, res);
   } catch (error) {
     // Handle any errors that occurred during user registration
@@ -222,19 +174,18 @@ const verifyUser = asynchandler(async (req, res) => {
 
 //Login user
 const loginUser = asynchandler(async (req, res) => {
-  const { email, password, role } = req.body;
+  const { email, password } = req.body;
 
   //validate Request
-  if (!email || !password || !role) {
+  if (!email || !password ) {
     respondsSender(
       null,
-      "Please Add Email, password and role(QA, annotator or admin)",
+      "Please Add Email, password",
       ResponseCode.badRequest,
       res
     );
   }
   const lowerEmail = email.toLowerCase();
-    const userRole= role.toUpperCase();
   //Check if user Exists
   const user = await User.findOne({ email: lowerEmail });
   if (!user) {
@@ -247,75 +198,74 @@ const loginUser = asynchandler(async (req, res) => {
   }
   // User exists, check if password is correct
   const passwordIsCorrect = await bcrypt.compare(password, user.password);
-  //if user role is a user allow next phase of auth 
-  if (user.role==userRole){
+  //if user role is a user allow next phase of auth
+
     if (user && passwordIsCorrect) {
-    if (user.verified == true) {
-      //Generate Login Token
-      const token = generateToken(user._id);
+      if (user.verified == true) {
+        //Generate Login Token
+        const token = generateToken(user._id);
 
-      //delete all user previous token
-      const deletionResult = await Token.deleteMany({ userId: user._id });
+        //delete all user previous token
+        const deletionResult = await Token.deleteMany({ userId: user._id });
 
-      //save token to token db
-      const savedToken = await Token.create({
-        userId: user._id,
-        token,
-      });
+        //save token to token db
+        const savedToken = await Token.create({
+          userId: user._id,
+          token,
+        });
 
-      const data = {
-        userInfo: {
-          _id: user._id,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          email: user.email,
-          gender: user.gender,
-          dateOfBirth: user.dateOfBirth,
-          accent: user.accent,
-          role:user.role
-        },
-        token: token,
-      };
+        const data = {
+          userInfo: {
+            _id: user._id,
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            role: user.role,
+          },
+          token: token,
+        };
 
         //set active status true, set annotatorautdio status model true as well
-      // Find the user by userId and update the status to true
+        // Find the user by userId and update the status to true
         const result = await AuthLoginStatus.findOneAndUpdate(
-        { userId: user._id },
-        { status: true },
-        { upsert: true, new: true, setDefaultsOnInsert: true }
+          { userId: user._id },
+          { status: true },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
         );
 
         if (result) {
-            //add annotator status true if it has not been added
-            const existingStatus = await AnnotatorAuditorStatus.findOne({ userId: user._id });
+          //add annotator status true if it has not been added
+          const existingStatus = await AnnotatorAuditorStatus.findOne({
+            userId: user._id,
+          });
 
-                if (!existingStatus) {
-                // User does not have a status entry, create one with status active
-                const newStatus = new AnnotatorAuditorStatus({ userId: user._id, status: ACTIVE });
-                await newStatus.save();
-                console.log(`Added annotator status for user ${user._id} as active.`);
-                } 
-        } 
+          if (!existingStatus) {
+            // User does not have a status entry, create one with status active
+            const newStatus = new AnnotatorAuditorStatus({
+              userId: user._id,
+              status: ACTIVE,
+            });
+            await newStatus.save();
+            console.log(
+              `Added annotator status for user ${user._id} as active.`
+            );
+          }
+        }
 
-
-      respondsSender(data, "Login successful", ResponseCode.successful, res);
+        respondsSender(data, "Login successful", ResponseCode.successful, res);
+      } else {
+        //password and email is right but user is not verified resend verification mail
+        respondsSender(
+          null,
+          "Please verify your email",
+          ResponseCode.noData,
+          res
+        );
+      }
     } else {
-      //password and email is right but user is not verified resend verification mail
-      respondsSender(
-        null,
-        "Please verify your email",
-        ResponseCode.noData,
-        res
-      );
+      respondsSender(null, "Wrong Password", ResponseCode.noData, res);
     }
-  } else {
-    respondsSender(null, "Wrong Password", ResponseCode.noData, res);
-  }
-  }
-  else{
-    //this is not a user but a qa, or others
-     respondsSender(null, `Please only Admin, Annotators or Auditors(QA) are allowed here. It seems you are not ${role}, please check in with your proper role`, ResponseCode.unAuthorized, res);
-  }
+  
 });
 
 //Logout User
@@ -381,10 +331,7 @@ const getUser = asynchandler(async (req, res) => {
       firstname: user.firstname,
       lastname: user.lastname,
       email: user.email,
-      gender: user.gender,
-      dateOfBirth: user.dateOfBirth,
-      accent: user.accent,
-      role:user.role
+      role: user.role,
     };
     respondsSender(
       userInfo,
@@ -406,37 +353,11 @@ const loginStatus = asynchandler(async (req, res) => {
   respondsSender(null, true, ResponseCode.successful, res);
 });
 
-//Update User
-const updateUser = asynchandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (user) {
-    const { _id, name, email, photo, phone, bio } = user;
-    user.email = email;
-    user.name = req.body.name || name;
-    user.phone = req.body.phone || phone;
-    user.bio = req.body.bio || bio;
-    user.photo = req.body.photo || photo;
-
-    const updatedUser = await user.save();
-    const user = {
-      _id: updatedUser._id,
-    };
-    respondsSender(
-      user,
-      "User Info updated successfully",
-      ResponseCode.successful,
-      res
-    );
-  } else {
-    respondsSender(null, "User Not Found", ResponseCode.noData, res);
-  }
-});
 
 // Change Password
 const changePassword = asynchandler(async (req, res) => {
   const { oldPassword, password, userId } = req.body;
-  const user = await User.findById({_id:userId});
+  const user = await User.findById({ _id: userId });
   if (!user) {
     respondsSender(
       null,
@@ -503,7 +424,10 @@ const forgotPassword = asynchandler(async (req, res) => {
   const resetToken = generateToken(user._id);
 
   //Hash token before Saving to DB
-    const hashedToken = crypto.createHash("sha256").update(resetToken).digest("hex")
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
   //Save Token to DB
   await new Token({
     userId: user._id,
@@ -595,11 +519,7 @@ const resetPassword = asynchandler(async (req, res) => {
   );
 });
 
-// Get Accent of User
-const getAccent = asynchandler(async (req, res) => {
-//  const allAccents
-  respondsSender(accents, "Successful", ResponseCode.successful, res);
-});
+
 
 module.exports = {
   registerUser,
@@ -607,12 +527,8 @@ module.exports = {
   logout,
   getUser,
   loginStatus,
-  updateUser,
   changePassword,
   forgotPassword,
   resetPassword,
   verifyUser,
-  getAccent,
-  runUserUpdate,
-
 };

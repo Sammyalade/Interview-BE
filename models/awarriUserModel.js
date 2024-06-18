@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const { ROLE } = require("../utils/constant");
 
-const userSchema = mongoose.Schema(
+const awarriUserSchema = mongoose.Schema(
   {
     firstname: {
       type: String,
@@ -22,45 +22,19 @@ const userSchema = mongoose.Schema(
         "Please enter a valid Email",
       ],
     },
-    gender: {
-      type: String,
-      required: [true, "Please add a gender"],
-    },
-    dateOfBirth: {
-      type: String,
-      required: [true, "Please add Date of Birth"],
-    },
-    accent: {
-      type: String,
-      required: [true, "Please add accent"],
-    },
-    // tribe: {
-    //     type: String,
-    //     required: [true, "Please add a Tribe"]
-    // },
-    // ethnicity: {
-    //     type: String,
-    //     required: [true, "Please add Ethnicity"]
-    // },
-    consent: {
-      type: String,
-      required: [true, "Please add a consent confirmation"],
-    },
+    
     password: {
       type: String,
       required: [true, "Please add your Password"],
       minLength: [6, "password must be up to 6 characters"],
       //  maxLength: [23, "Password must not be more than 23 characters"],
     },
-    // language: {
-    //   type: String,
-    //   default: "Not Specified",
-    // },
+  
     role: {
       type: String,
       require: true,
-      default: "USER",
-      enum: [ROLE.ADMIN, ROLE.ANNOTATOR, ROLE.QA, ROLE.USER],
+      default: "ANNOTATOR",
+      enum: [ROLE.ADMIN, ROLE.ANNOTATOR, ROLE.QA],
     },
     verified: {
       type: Boolean,
@@ -71,7 +45,7 @@ const userSchema = mongoose.Schema(
 );
 
 //encrypt password before saving to DB
-userSchema.pre("save", async function (next) {
+awarriUserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
     return next();
   }
@@ -82,5 +56,5 @@ userSchema.pre("save", async function (next) {
   next();
 });
 
-const User = mongoose.model("User", userSchema);
-module.exports = User;
+const AwarriUser = mongoose.model("AwarriUser", awarriUserSchema);
+module.exports = AwarriUser;

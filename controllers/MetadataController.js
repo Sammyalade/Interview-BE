@@ -87,10 +87,18 @@ const getTranslatedText = asyncHandler(async (req, res) => {
   }
 });
 
-const processRecords = async (records) => {
+const processRecords = async (records, isSpeak = false) => {
   const processedRecords = await Promise.all(
     records.map(async (record) => {
-      const { oratoryId, subDialogueId, dialogueId, userId } = record;
+      console.log("Records >>>", records);
+      const {
+        oratoryId,
+        subDialogueId,
+        dialogueId,
+        userId,
+        filePath,
+        language,
+      } = record;
 
       const fetchOratoryPromise = oratoryId
         ? fetchOratory(oratoryId)
@@ -108,6 +116,19 @@ const processRecords = async (records) => {
         ? fetchDialogue(dialogueId)
         : Promise.resolve(null);
 
+      // Fetch the translated text if the record is for Speak
+      let translateText = null;
+      if (isSpeak && filePath && filePath.includes("Speak")) {
+        const translateRecord = await Translate.findOne({
+          dialogueId,
+          subDialogueId,
+          language,
+        });
+        if (translateRecord) {
+          translateText = translateRecord.translateText;
+        }
+      }
+
       const [oratory, subDialogue, dialogue, userTask, user] =
         await Promise.all([
           fetchOratoryPromise,
@@ -122,6 +143,7 @@ const processRecords = async (records) => {
         subDialogue,
         dialogue,
         user,
+        translateText,
       };
     })
   );
@@ -164,6 +186,9 @@ const fetchDialogue = async (dialogueId) => {
 
 const arrayReducer = (data) => {
   const reducedData = data.map((item) => {
+    // console.log("item doc >>", item._doc);
+    console.log("item  >>", item);
+
     const {
       _id,
       filePath, //destructure filepath if it exist in item doc.
@@ -187,6 +212,7 @@ const arrayReducer = (data) => {
     const DialogueTitle = item.dialogue ? item.dialogue.title : null;
     const domain = item.dialogue ? item.dialogue.domain : null;
     const scenario = item.dialogue ? item.dialogue.scenario : null;
+    const translateTextHere = item._doc;
 
     const newFilePath = filePath ? `${filePath}${fileName}` : "";
 
@@ -213,7 +239,7 @@ const arrayReducer = (data) => {
       userId,
       text,
       audioLanguage: language,
-      translatedText: translateText,
+      translatedText: item.translateText,
       identifier,
       DialogueTitle,
       domain,
@@ -286,17 +312,17 @@ const getRecordedDialogue = asyncHandler(async (req, res) => {
 
 const getallMetadata = asyncHandler(async (req, res) => {
   try {
-    const translateRecords = await Translate.find();
+    // const translateRecords = await Translate.find();
     const speakRecords = await Speak.find();
     const recordRecords = await Record.find();
 
-    const processedTranslateRecords = await processRecords(translateRecords);
-    const processedSpeakRecords = await processRecords(speakRecords);
+    // const processedTranslateRecords = await processRecords(translateRecords);
+    const processedSpeakRecords = await processRecords(speakRecords, true);
     const processedRecordRecords = await processRecords(recordRecords);
 
     // Combine all records into one array
     const combinedRecords = [
-      ...processedTranslateRecords,
+      // ...processedTranslateRecords,
       ...processedSpeakRecords,
       ...processedRecordRecords,
     ];

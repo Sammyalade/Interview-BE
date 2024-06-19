@@ -24,4 +24,3 @@ router.post("/skip", protect(), skipTask);
 router.get("/meter/:userId", protect(), getMeter);
 
 module.exports = router;
-

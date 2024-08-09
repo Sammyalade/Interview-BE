@@ -26,10 +26,21 @@ const getDataBaseTable = asyncHandler(async (req, res) => {
     const [result] = await conn.query(`SELECT NOW();`);
     // Define the table name
     const tableName = "translations"; // Replace with your actual table name
+    const columns = ["yoruba"];
 
     // Query to select all fields from the specified table
-    const [rows] = await pool.query(`SELECT * FROM ??`, [tableName]);
-    console.table(rows); // prints returned time value from server
+    // const [table] = await pool.query(
+    //   `SELECT english,yoruba,hausa  FROM ${tableName}`
+    // );
+    const [table] = await pool.query(`SELECT *  FROM ${tableName}`);
+    // const [table] = await pool.query(
+    //   `SELECT *  FROM ${tableName} WHERE file_id = "file_003"`
+    // );
+
+    // const [table] = await pool.query(
+    //   `UPDATE ${tableName} SET english= "You are welcome."  WHERE english = "Thank you"`
+    // );
+    console.table(table); // prints returned time value from server
 
     await pool.end();
     connector.close();

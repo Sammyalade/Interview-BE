@@ -128,3 +128,5 @@ dist
 
 
 /node_modules
+
+service-sql-key.json

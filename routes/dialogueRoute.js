@@ -10,6 +10,7 @@ const {
   getSingleTask,
 } = require("../controllers/dialogueController");
 const { fetchDialogues } = require("../utils/readContent");
+const { getDataBaseTable } = require("../utils/readSqlData");
 const protect = require("../middleWare/authMiddleware");
 
 const { upload } = require("../utils/fileUpload");
@@ -22,6 +23,8 @@ router.get("/getundonetasks/:userId", protect(), getUndoneTasks);
 router.get("/getdonetasks/:userId", protect(), getDoneTasks);
 
 router.get("/fetchgcp", fetchDialogues); //read all doc from GCP to DB
+
+router.get("/getSqlDB", getDataBaseTable); //read all doc from GCP to DB
 
 router.post("/generate", upload.single("dialogueDoc"), createDialogueWithDoc); //route for csv upload
 

@@ -1,8 +1,6 @@
 const mysql = require("mysql2/promise");
 const { Connector } = require("@google-cloud/cloud-sql-connector");
-const { GoogleAuth } = require("google-auth-library");
 const asyncHandler = require("express-async-handler");
-const path = require("path");
 
 const keyFilePath = process.env.PATH_TO_SQL_SERVICE_KEY;
 

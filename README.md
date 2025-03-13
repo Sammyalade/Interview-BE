@@ -1,4 +1,4 @@
-# Junior DevOps Engineer Assessment
+# DevOps Engineer Assessment
 
 ## Introduction
 Welcome! We are excited to have you complete this assessment as part of our hiring process.  

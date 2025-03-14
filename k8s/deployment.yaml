@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: interview-be
-          image: gcr.io/my-project/interview-be:latest
+          image: gcr.io/circular-hawk-453613-u6/interview-be:latest
           ports:
             - containerPort: 4000
           # envFrom:

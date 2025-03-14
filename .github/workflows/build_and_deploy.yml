@@ -39,6 +39,9 @@ jobs:
       run: |
         gcloud container clusters get-credentials my-cluster --zone us-central1-a --project ${{ secrets.GCP_PROJECT_ID }}
 
+    - name: Authenticate Docker with GCR
+      run: gcloud auth configure-docker gcr.io
+      
     - name: Build and Push Docker Image
       run: |
         docker build -t gcr.io/${{ secrets.GCP_PROJECT_ID }}/interview-be:latest .

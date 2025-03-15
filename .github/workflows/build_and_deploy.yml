@@ -69,8 +69,14 @@ jobs:
       run: |
         docker push gcr.io/${{ secrets.GCP_PROJECT_ID }}/interview-be:latest
 
-    - name: Deploy to GKE
+    - name: Install Helm
       run: |
-        kubectl apply -f k8s/secret.yaml
-        kubectl apply -f k8s/deployment.yaml
-        kubectl apply -f k8s/service.yaml
+        curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        chmod 700 get_helm.sh
+        ./get_helm.sh
+
+    - name: Deploy with Helm
+      run: |
+        helm upgrade --install interview-be ./helm \
+          --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/interview-be \
+          --set image.tag=latest

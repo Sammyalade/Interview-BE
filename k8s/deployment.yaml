@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: interview-be
-          image: gcr.io/$(GCP_PROJECT_ID)/interview-be:latest
+          image: PLACEHOLDER
           ports:
             - containerPort: 4000
           env:

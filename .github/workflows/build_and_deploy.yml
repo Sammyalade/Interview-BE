@@ -77,6 +77,6 @@ jobs:
 
     - name: Deploy with Helm
       run: |
-        helm upgrade --install interview-be ./helm \
+        helm upgrade --install interview-bee ./helm-chart \
           --set image.repository=gcr.io/${{ secrets.GCP_PROJECT_ID }}/interview-be \
           --set image.tag=latest

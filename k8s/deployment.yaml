@@ -14,12 +14,15 @@ spec:
     spec:
       containers:
         - name: interview-be
-          image: gcr.io/circular-hawk-453613-u6/interview-be:latest
+          image: gcr.io/$(GCP_PROJECT_ID)/interview-be:latest
           ports:
             - containerPort: 4000
-          # envFrom:
-          #   - secretRef:
-          #       name: app-secret
+          env:
+            - name: GCP_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: GCP_PROJECT_ID
           resources:
             requests:
               memory: "256Mi"

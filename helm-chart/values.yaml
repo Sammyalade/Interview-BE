@@ -1,0 +1,20 @@
+replicaCount: 2
+
+image:
+  repository: "gcr.io/circular-hawk-453613-u6/interview-be"
+  tag: "latest"
+
+secretName: "app-secret"
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "250m"
+  limits:
+    memory: "512Mi"
+    cpu: "500m"
+
+service:
+  port: 80
+  targetPort: 4000
+  type: LoadBalancer

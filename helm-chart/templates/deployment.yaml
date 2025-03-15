@@ -6,17 +6,17 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Release.Name }}-be
+      app: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ .Release.Name }}-be
+        app: {{ .Release.Name }}
     spec:
       containers:
-        - name: interview-be
+        - name: {{ .Release.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
-            - containerPort: 4000
+            - containerPort: {{ .Values.service.targetPort }}
           env:
             - name: GCP_PROJECT_ID
               valueFrom:
@@ -25,20 +25,20 @@ spec:
                   key: GCP_PROJECT_ID
           resources:
             requests:
-              memory: {{ .Values.resources.requests.memory }}
-              cpu: {{ .Values.resources.requests.cpu }}
+              memory: "{{ .Values.resources.requests.memory }}"
+              cpu: "{{ .Values.resources.requests.cpu }}"
             limits:
-              memory: {{ .Values.resources.limits.memory }}
-              cpu: {{ .Values.resources.limits.cpu }}
+              memory: "{{ .Values.resources.limits.memory }}"
+              cpu: "{{ .Values.resources.limits.cpu }}"
           livenessProbe:
             httpGet:
               path: /api/v1/healthcheck
-              port: 4000
+              port: {{ .Values.service.targetPort }}
             initialDelaySeconds: 3
             periodSeconds: 5
           readinessProbe:
             httpGet:
               path: /api/v1/healthcheck
-              port: 4000
+              port: {{ .Values.service.targetPort }}
             initialDelaySeconds: 3
             periodSeconds: 5
